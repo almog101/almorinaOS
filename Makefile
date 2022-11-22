@@ -15,7 +15,7 @@ build: create-bin $(ASM_OBJS) $(C_OBJS)
 	grub-mkrescue /usr/lib/grub/i386-pc -o bin/kernel.iso iso
 
 bin/%.o: src/%.c
-	x86_64-elf-gcc -c -ffreestanding $< -o $@
+	x86_64-elf-gcc -c -ffreestanding $< -o $@ -I./src/include
 bin/%.o: src/%.asm
 	nasm -f elf64 $< -o $@
 
@@ -23,6 +23,6 @@ run:
 	qemu-system-x86_64 bin/kernel.iso
 
 clean:
-	rm -rf bin
+	rm -rf bin iso/boot/kernel.bin
 
 

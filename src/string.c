@@ -1,4 +1,6 @@
-#include "memory.h"
+#include "string.h"
+#include "stdio.h"
+#include <stdbool.h>
 
 // Copy len bytes from src to dest.
 void memcpy(uint8_t *dest, const uint8_t *src, uint32_t len)
@@ -14,3 +16,4 @@ void memset(uint8_t *dest, uint8_t val, uint32_t len)
     uint8_t *temp = (uint8_t *)dest;
     for ( ; len != 0; len--) *temp++ = val;
 }
+

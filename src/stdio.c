@@ -1,7 +1,7 @@
 #include "stdio.h"
 #include "stdarg.h"
 #include "keycode.h"
-#include "memory.h"
+#include "string.h"
 #include <stdint.h>
 
 // The VGA framebuffer starts at 0xB8000.

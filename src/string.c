@@ -17,3 +17,18 @@ void memset(uint8_t *dest, uint8_t val, uint32_t len)
     for ( ; len != 0; len--) *temp++ = val;
 }
 
+char *strcpy(char *dest, const char *src)
+{
+    do
+	{
+      *dest++ = *src++;
+	}while (*src != 0);
+}
+
+char *strchr(char *haystack, const char needle)
+{
+	while (*haystack != needle)
+        if (!*haystack++)
+            return 0;
+    return haystack;
+}

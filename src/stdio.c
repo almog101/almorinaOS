@@ -1,212 +1,122 @@
 #include "stdio.h"
-#include "stdarg.h"
+#include <stdarg.h>
 #include "keycode.h"
 #include "string.h"
+#include "vga.h"
 #include <stdint.h>
+#include <stdbool.h>
 
-// The VGA framebuffer starts at 0xB8000.
-uint16_t *video_memory = (uint16_t *)0xB8000;
-// Stores the cursor position.
-static uint8_t cursor_x = 0;
-static uint8_t cursor_y = 0;
 
-static uint8_t bg_color = 1;
-static uint8_t fg_color = 15;
+#define BACKSPACE_CHAR 0x08
+#define TAB_CHAR 0x09
+#define RETURN_CHAR '\r'
+#define NEWLINE_CHAR '\n'
+#define BLANK_CHAR ' '
 
-// Updates the hardware cursor.
-static void movcur()
+static color16_t bg_color = BLUE;
+static color16_t fg_color = WHITE;
+
+void scroll(cursor_t* curr)
 {
-    // The screen is 80 characters wide...
-    uint16_t cursorLocation = cursor_y * 80 + cursor_x;
-    outb(0x3D4, 14);                  // Tell the VGA board we are setting the high cursor byte.
-    outb(0x3D5, cursorLocation >> 8); // Send the high cursor byte.
-    outb(0x3D4, 15);                  // Tell the VGA board we are setting the low cursor byte.
-    outb(0x3D5, cursorLocation);      // Send the low cursor byte.
+	if (curr->y >= SCREEN_HEIGHT)
+	{
+		// move each line 1 row up
+		for (int i = 0; i<SCREEN_HEIGHT-1; i++)
+			for (int j = 0; j<SCREEN_WIDTH; j++)
+				vga_setch(j, i, vga_getch(j, i+1));
+		
+		// clear the last line
+		for (int j = 0; j<SCREEN_WIDTH; j++) 
+			vga_setch(j, SCREEN_HEIGHT-1, BLANK_CHAR);
+
+		curr->y = SCREEN_HEIGHT-1;
+		curr->x =0;
+	}
 }
 
-// Scrolls the text on the screen up by one line.
-static void scroll()
-{
-
-    // Get a space character with the default colour attributes.
-    uint8_t attributeByte = (0 /*black*/ << 4) | (15 /*white*/ & 0x0F);
-    uint16_t blank = 0x20 /* space */ | (attributeByte << 8);
-
-    // Row 25 is the end, this means we need to scroll up
-    if(cursor_y >= 25)
-    {
-        // Move the current text chunk that makes up the screen
-        // back in the buffer by a line
-        int i;
-        for (i = 0*80; i < 24*80; i++)
-        {
-            video_memory[i] = video_memory[i+80];
-        }
-
-        // The last line should now be blank. Do this by writing
-        // 80 spaces to it.
-        for (i = 24*80; i < 25*80; i++)
-        {
-            video_memory[i] = blank;
-        }
-        // The cursor should now be on the last line.
-        cursor_y = 24;
-    }
-}
-
-// Writes a single character out to the screen.
 void putc(char c)
 {
-    // The attribute byte is made up of two nibbles - the lower being the 
-    // foreground colour, and the upper the background colour.
-    uint8_t  attributeByte = (bg_color << 4) | (fg_color & 0x0F);
-    // The attribute byte is the top 8 bits of the word we have to send to the
-    // VGA board.
-    uint16_t attribute = attributeByte << 8;
-    uint16_t *location;
+	cursor_t curr = vga_getcurr();
 
-    // Handle a backspace, by moving the cursor back one space
-    if (c == 0x08 && cursor_x)
+    if (c == BACKSPACE_CHAR && curr.x)
+        curr.x--;
+    else if (c == TAB_CHAR)
+        curr.x = (curr.x+8) & ~(8-1); // increases the cursor's X, but only if it's divisible by 8
+    else if (c == RETURN_CHAR)
+        curr.x = 0;
+    else if (c == NEWLINE_CHAR)
     {
-        cursor_x--;
+        curr.x = 0;
+        curr.y++;
+    }
+    else if(c >= BLANK_CHAR) // Handle any other printable character.
+    {
+		vga_setcell(curr.x, curr.y, c, fg_color, bg_color);
+        curr.x++;
     }
 
-    // Handle a tab by increasing the cursor's X, but only to a point
-    // where it is divisible by 8.
-    else if (c == 0x09)
+    if (curr.x >= SCREEN_WIDTH) // if reached the end of the line, add new line
     {
-        cursor_x = (cursor_x+8) & ~(8-1);
+        curr.x = 0;
+        curr.y++;
     }
 
-    // Handle carriage return
-    else if (c == '\r')
-    {
-        cursor_x = 0;
-    }
-
-    // Handle newline by moving cursor back to left and increasing the row
-    else if (c == '\n')
-    {
-        cursor_x = 0;
-        cursor_y++;
-    }
-    // Handle any other printable character.
-    else if(c >= ' ')
-    {
-        location = video_memory + (cursor_y*80 + cursor_x);
-        *location = c | attribute;
-        cursor_x++;
-    }
-
-    // Check if we need to insert a new line because we have reached the end
-    // of the screen.
-    if (cursor_x >= 80)
-    {
-        cursor_x = 0;
-        cursor_y ++;
-    }
-
-    // Scroll the screen if needed.
-    scroll();
-    // Move the hardware cursor.
-    movcur();
-
+	scroll(&curr);
+	vga_setcurr(curr.x, curr.y);
+	vga_movcurr();
 }
 
 void cls()
 {
-    // Make an attribute byte for the default colours
-    uint8_t attributeByte = (bg_color << 4) | (fg_color & 0x0F);
-    uint16_t blank = 0x20 /* space */ | (attributeByte << 8);
+    for (int i = 0; i < 25; i++)
+		for (int j = 0; j < 80; j++)
+			vga_setcell(j, i, BLANK_CHAR, fg_color, bg_color);
 
-    for (int i = 0; i < 80*25; i++)
-        video_memory[i] = blank;
-
-    // Move the hardware cursor back to the start.
-    cursor_x = 0;
-    cursor_y = 0;
-    movcur();
+	vga_setcurr(0, 0);
+	vga_movcurr();
 }
 
-// Outputs a null-terminated ASCII string to the monitor.
 void puts(char *c)
 {
     int i = 0;
     while (c[i])
-    {
         putc(c[i++]);
-    }
 }
 
-void puth(uint32_t n)
+void puth(int n, bool uppercase)
 {
-    int tmp;
-
     puts("0x");
-
-    char noZeroes = 1;
-
-    int i;
-    for (i = 28; i > 0; i -= 4)
-    {
-        tmp = (n >> i) & 0xF;
-        if (tmp == 0 && noZeroes != 0)
-        {
-            continue;
-        }
     
-        if (tmp >= 0xA)
-        {
-            noZeroes = 0;
-            putc (tmp-0xA+'a' );
-        }
-        else
-        {
-            noZeroes = 0;
-            putc( tmp+'0' );
-        }
-    }
-  
-    tmp = n & 0xF;
-    if (tmp >= 0xA)
-    {
-        putc (tmp-0xA+'a');
-    }
-    else
-    {
-        putc (tmp+'0');
-    }
+	const int BYTE_SIZE = 8;
+	const int DIGIT_BITS = 4;
 
+	int digit;
+    bool noZeroes = true;
+
+    for (int i = sizeof(n) * BYTE_SIZE - DIGIT_BITS; i >= 0; i -= DIGIT_BITS)
+    {
+        digit = (n >> i) & 0xF;
+        
+		if (digit == 0 && noZeroes != 0)
+            continue;
+		noZeroes = 0;
+
+        if (digit >= 0xA)
+            putc ((digit-0xA) + ((uppercase) ? 'A' : 'a') );
+        else
+            putc( digit+'0' );
+    }
 }
 
-void putd(uint32_t n)
-{
-    if (n == 0)
-    {
-        putc('0');
-        return;
-    }
-
-    int acc = n;
-    char c[32];
-    int i = 0;
-    while (acc > 0)
-    {
-        c[i] = '0' + acc%10;
-        acc /= 10;
-        i++;
-    }
-    c[i] = 0;
-
-    char c2[32];
-    c2[i--] = 0;
-    int j = 0;
-    while(i >= 0)
-    {
-        c2[i--] = c[j++];
-    }
-    puts(c2);
-
+void putd(int n)
+{ 
+	if( n > 9 )
+	{ 
+		int a = n / 10;
+		n -= 10 * a;
+		putd(a);
+	}
+	putc('0'+n);
 }
 
 void printf(const char* format, ...)
@@ -223,6 +133,12 @@ void printf(const char* format, ...)
 				case 'd':
 					putd(va_arg ( arguments, int ));
 					break;
+				case 'x':
+					puth(va_arg ( arguments, int ), false);
+					break;
+				case 'X':
+					puth(va_arg ( arguments, int ), true);
+					break;
 				case 'c':
 					putc(va_arg ( arguments, char ));
 					break;
@@ -237,39 +153,6 @@ void printf(const char* format, ...)
 		else
 			putc(format[i]);
 	}
-	//cursor_x++;
-	//movcur();
+
 	va_end ( arguments );                  // Cleans up the list
 }
-
-static char last_ch = 0;
-char getc()
-{
-	char ch;
-	do
-	{
-		ch = inb(0x60);
-	} while(ch == last_ch);
-
-	last_ch = ch;
-	return kbdmix[ch];
-}
-
-void scanf(char* dst, int n)
-{
-	memset(dst, 0, n);
-	int i = 0;
-	while (i < n)
-	{
-		char ch = getc();
-		if (ch)
-		{
-			putc(ch);
-			dst[i++] = ch;
-			if (ch == '\n')
-				break;
-		}
-	}
-}
-
-

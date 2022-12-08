@@ -24,7 +24,7 @@ idt_descriptor:
     pop rax
 %endmacro
 
-[extern isr1]
+[extern isr1_handler]
 
 isr1:
     PUSHALL

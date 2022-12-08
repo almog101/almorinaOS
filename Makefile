@@ -1,8 +1,8 @@
 C_SRC := $(wildcard src/*.c)
 C_OBJS := $(patsubst src/%.c, bin/%.o,$(C_SRC))
 
-ASM_SRC := $(wildcard src/*.asm)
-ASM_OBJS := $(patsubst src/%.asm, bin/%.o,$(ASM_SRC))
+ASM_SRC := $(wildcard src/assembly/*.asm)
+ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
 
 all: build
 
@@ -16,7 +16,8 @@ build: create-bin $(ASM_OBJS) $(C_OBJS)
 
 bin/%.o: src/%.c
 	x86_64-linux-gnu-gcc -c -ffreestanding $< -o $@ -I./src/include
-bin/%.o: src/%.asm
+
+bin/%.o: src/assembly/%.asm
 	nasm -f elf64 $< -o $@
 
 run:
@@ -24,5 +25,3 @@ run:
 
 clean:
 	rm -rf bin iso/boot/kernel.bin
-
-

@@ -147,6 +147,9 @@ start:
 extern kernel_main
 section .text
 [bits 64]
+
+%include "idt.asm"
+
 long_mode_start:
     ; load null into all data segment registers
     mov ax, 0

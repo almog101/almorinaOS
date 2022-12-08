@@ -10,12 +10,12 @@ create-bin:
 	@mkdir -p bin
 
 build: create-bin $(ASM_OBJS) $(C_OBJS)
-	x86_64-elf-ld -n -o bin/kernel.bin -T linker.ld  $(C_OBJS) $(ASM_OBJS)
+	x86_64-linux-gnu-ld -n -o bin/kernel.bin -T linker.ld  $(C_OBJS) $(ASM_OBJS)
 	cp bin/kernel.bin iso/boot/kernel.bin
 	grub-mkrescue /usr/lib/grub/i386-pc -o bin/kernel.iso iso
 
 bin/%.o: src/%.c
-	x86_64-elf-gcc -c -ffreestanding $< -o $@ -I./src/include
+	x86_64-linux-gnu-gcc -c -ffreestanding $< -o $@ -I./src/include
 bin/%.o: src/%.asm
 	nasm -f elf64 $< -o $@
 

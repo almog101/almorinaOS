@@ -18,8 +18,4 @@ struct idt64
 } typedef idt64;
 
 void initialize_idt64();
-extern void isr1_handler();
-
-extern idt64 _idt[256];
-extern uint64_t isr1;
-extern void load_idt();
+void isr1_handler();

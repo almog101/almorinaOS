@@ -1,6 +1,10 @@
 #include "idt.h"
 
-void initialize_idt64()
+extern idt64 _idt[256];
+extern uint64_t isr1;
+extern void load_idt();
+
+extern void initialize_idt64()
 {
     for(uint64_t t = 0; t < 256; t++)
     {

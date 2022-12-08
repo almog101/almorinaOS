@@ -1,4 +1,4 @@
-[extern _idt]
+extern _idt
 
 idt_descriptor:
     dw 0x1000
@@ -28,7 +28,7 @@ idt_descriptor:
     pop rax
 %endmacro
 
-[extern isr1_handler]
+extern isr1_handler
 
 isr1:
     PUSHALL

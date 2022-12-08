@@ -1,8 +1,12 @@
 [extern _idt]
 
 idt_descriptor:
-    dw 4095
+    dw 0x1000
     dq _idt
+
+; define function that pushes all the needed registers
+; & pops all the needed registers
+; with "one line"
 
 %macro PUSHALL 0
     push rax
@@ -32,10 +36,10 @@ isr1:
     POPALL
 
     iretq
-    GLOBAL isr1
+    global isr1
 
 load_idt:
-    lidt(idt_descriptor)
+    lidt[idt_descriptor]
     sti
     ret
-    GLOBAL load_idt
+    global load_idt

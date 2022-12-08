@@ -13,6 +13,12 @@ SECTIONS
         . = ALIGN(4096);
     }
 
+    .idt BLOCK(4096) : ALIGN(4096)
+    {
+        _idt = .;
+        . = . + 0x1000;
+    }
+
     .data :
     {
         data = .; _data = .; __data = .;
@@ -26,12 +32,6 @@ SECTIONS
         bss = .; _bss = .; __bss = .;
         *(.bss)
         . = ALIGN(4096);
-    }
-
-    .idt BLOCK(0x1000) : ALIGN(0x1000)
-    {
-        _idt = .;
-        . = . + 0x1000;
     }
 
     end = .; _end = .; __end = .;

@@ -11,6 +11,8 @@ page_table_l3:
 	resb 4096
 page_table_l2:
 	resb 4096
+
+;define the stack
 stack_bottom:
 	resb 4096 * 4
 stack_top:
@@ -26,14 +28,17 @@ gdt64:
 
 section .text
 [bits 32]
+; a subroutine that checks if the kernel was loaded by a multiboot loader
 detect_multiboot:
-	cmp eax, 0x36d76289
+	cmp eax, 0x36d76289 ; a magic number used by the bootloader to mark multiboot
 	jne .no_multiboot
 	ret
 .no_multiboot:
 	mov al, "M"
 	jmp error
 
+; a subroutine that checks if the cpu as
+; it does that by checking if it can flip the id bit in the flags register
 detect_cpuid:
 	pushfd
 	pop eax
@@ -59,14 +64,14 @@ detect_cpuid:
 	jmp error
 
 detect_long_mode:
-	mov eax, 0x80000000
+	mov eax, 0x80000000 ; a magic number that the cpuid uses mark the cpu if it as extended processor info
 	cpuid
-	cmp eax, 0x80000001
+	cmp eax, 0x80000001 ; if true, cpuid will put in eax a number greater then the magic number
 	jb .no_long_mode
 
-	mov eax, 0x80000001
+	mov eax, 0x80000001 ; a magic number that the cpuid uses mark the cpu if it is supporting long mode
 	cpuid
-	test edx, 1 << 29
+	test edx, 1 << 29 ; cpuid will return a number into dx, and if the lm bit is set, long mode is supported
 	jz .no_long_mode
 	
 	ret
@@ -129,7 +134,7 @@ error:
 	hlt
 
 start:
-	mov esp, stack_top
+	mov esp, stack_top ; move the stack location to stack register
 
 	call detect_multiboot
 	call detect_cpuid

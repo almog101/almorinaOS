@@ -32,3 +32,24 @@ char *strchr(char *haystack, const char needle)
             return 0;
     return haystack;
 }
+
+int strcmp(const char *str1, const char *str2)
+{
+	while (*str1)
+	{
+		if (*str1 != *str2)
+			break;
+		str1++;
+		str2++;
+	}
+	return *(const unsigned char*)str1 - *(const unsigned char*)str2;
+}
+
+int atoi(char* str)
+{
+	int n=0;
+	while (*(str))
+		n = n*10 +  *(str++) - '0';
+	return n;
+}
+

@@ -24,7 +24,6 @@ extern void initialize_idt64()
 
 extern void isr1_handler()
 {
-    printf("keybaord interrupt??\n");
     outb(0x20, 0x20);
     outb(0xa0, 0x20);
 }

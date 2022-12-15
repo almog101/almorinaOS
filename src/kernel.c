@@ -39,4 +39,6 @@ void kernel_main()
 	char args[5][20] = {0};
 	
 	shell_parse(data, 128, args, 5);
+
+	return;
 }

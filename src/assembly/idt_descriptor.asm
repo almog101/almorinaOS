@@ -1,7 +1,7 @@
 extern _idt
 
 idt_descriptor:
-    dw 0x1000
+    dw 4095
     dq _idt
 
 ; define function that pushes all the needed registers

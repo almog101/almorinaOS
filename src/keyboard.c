@@ -7,15 +7,24 @@ char keyboard_scancode_to_keycode(uint8_t scancode)
 	return scancodes_table[scancode];
 }
 
+static char curr_ch = 0;
+
 void keyboard_handler(uint8_t scancode, uint8_t ch)
 {
 	putc(ch);
+	curr_ch = ch;
+}
+
+
+char keyboard_getch()
+{
+	return curr_ch;
 }
 
 static unsigned char scancodes_table[128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
-  '9', '0', '+', /*'´' */0, '\b',	/* Backspace */
+  '9', '0', '-', /*'´' */'+', '\b',	/* Backspace */
   '\t',			/* Tab */
   'q', 'w', 'e', 'r',	/* 19 */
   't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',	/* Enter key */

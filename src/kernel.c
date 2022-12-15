@@ -87,6 +87,10 @@ void kernel_main()
 
 	putc('\n');
 
-	char exp[] = "5  *9 -7 + 11";
+
+	printf("Enter expression: ");
+	char exp[200] = "3-1";
+	//fgets(exp, 200-1);
 	printf("%s = %d\n", exp, eval(exp));
+
 }

@@ -10,5 +10,6 @@
 
 
 char key_scancode_to_keycode(uint8_t scancode);
+char keyboard_getch();
 
 #endif

@@ -1,17 +1,10 @@
 #include "stdio.h"
 #include <stdarg.h>
-#include "keycode.h"
 #include "string.h"
 #include "vga.h"
 #include <stdint.h>
 #include <stdbool.h>
-
-
-#define BACKSPACE_CHAR 0x08
-#define TAB_CHAR 0x09
-#define RETURN_CHAR '\r'
-#define NEWLINE_CHAR '\n'
-#define BLANK_CHAR ' '
+#include "keyboard.h"
 
 static color16_t bg_color = BLUE;
 static color16_t fg_color = WHITE;
@@ -39,7 +32,10 @@ void putc(char c)
 	cursor_t curr = vga_getcurr();
 
     if (c == BACKSPACE_CHAR && curr.x)
+	{
         curr.x--;
+		vga_setcell(curr.x, curr.y, ' ', fg_color, bg_color);
+	}
     else if (c == TAB_CHAR)
         curr.x = (curr.x+8) & ~(8-1); // increases the cursor's X, but only if it's divisible by 8
     else if (c == RETURN_CHAR)

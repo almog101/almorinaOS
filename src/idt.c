@@ -1,4 +1,5 @@
 #include "idt.h"
+#include "keyboard.h"
 
 extern idt64 _idt[256];
 extern uint64_t isr1;
@@ -24,6 +25,13 @@ extern void initialize_idt64()
 
 extern void isr1_handler()
 {
+	uint8_t scan = inb(0x60);
+	uint8_t ch = 0;
+
+	if (scan < 0x3a)
+		ch = keyboard_scancode_to_keycode(scan);
+	keyboard_handler(scan,ch);
+
     outb(0x20, 0x20);
     outb(0xa0, 0x20);
 }

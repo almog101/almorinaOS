@@ -1,5 +1,18 @@
-/* A US keymap, courtesy of Bran's tutorial */
-unsigned char kbdmix[128] =
+#include <keyboard.h>
+
+static unsigned char scancodes_table[128];
+
+char keyboard_scancode_to_keycode(uint8_t scancode)
+{
+	return scancodes_table[scancode];
+}
+
+void keyboard_handler(uint8_t scancode, uint8_t ch)
+{
+	putc(ch);
+}
+
+static unsigned char scancodes_table[128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
   '9', '0', '+', /*'´' */0, '\b',	/* Backspace */
@@ -38,3 +51,4 @@ unsigned char kbdmix[128] =
     0,	/* F12 Key */
     0,	/* All other keys are undefined */
 };
+

@@ -6,12 +6,17 @@
 ENTRY(start)
 SECTIONS
 {
-
     .text 0x100000 :
     {
         code = .; _code = .; __code = .;
         *(.text)
         . = ALIGN(4096);
+    }
+
+    .idt BLOCK(4096) : ALIGN(4096)
+    {
+        _idt = .;
+        . = . + 0x1000;
     }
 
     .data :

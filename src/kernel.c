@@ -62,6 +62,8 @@ void help()
 
 void kernel_main() 
 {
+	initialize_idt64();
+
 	cls();
 	printf("Welcome to\n%s", ascii_data);
 	

@@ -148,10 +148,10 @@ start:
 
 	hlt
 
-
 extern kernel_main
 section .text
 [bits 64]
+
 long_mode_start:
     ; load null into all data segment registers
     mov ax, 0
@@ -162,4 +162,4 @@ long_mode_start:
     mov gs, ax
 
 	call kernel_main
-    hlt
+    jmp $

@@ -36,5 +36,10 @@ run-gdb:
 clean:
 	rm -rf bin iso/boot/kernel.bin
 
+docker-build:
+	docker build --network=host -t almorina-builder .  
+docker-run:
+	docker run -it almorina-builder /bin/sh
+	
 
 

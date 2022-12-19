@@ -38,3 +38,12 @@ run-gdb:
 
 clean:
 	rm -rf bin iso/boot/kernel.bin
+
+docker-create:
+	docker build --network=host -t almorina-builder .  
+docker-build:
+	docker run -v $(shell pwd):/mnt -w /mnt -it almorina-builder make
+	sudo chmod -R g+w bin/kernel.iso bin/*.o
+	
+
+

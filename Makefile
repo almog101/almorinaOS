@@ -1,5 +1,5 @@
-C_SRC := $(wildcard src/*.c)
-C_OBJS := $(patsubst src/%.c, bin/%.o,$(C_SRC))
+C_SRC := $(wildcard src/c-code/*.c)
+C_OBJS := $(patsubst src/c-code/%.c, bin/%.o,$(C_SRC))
 
 ASM_SRC := $(wildcard src/assembly/*.asm)
 ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
@@ -22,7 +22,7 @@ build-debug: build create-debug-info
 create-debug-info:
 	objcopy --only-keep-debug bin/kernel.bin bin/kernel.sym
 
-bin/%.o: src/%.c
+bin/%.o: src/c-code/%.c /
 	$(CC) -g -DDEBUG -ggdb -Wall -c -ffreestanding $< -o $@ -I./src/include
 bin/%.o: src/assembly/%.asm
 	nasm -f elf64 -g -F dwarf $< -o $@

@@ -1,0 +1,92 @@
+steps needed:
+    1.  create stack
+    2.  create check functions that:
+        -   check if miltiboot was successful [is present]
+        -   check if CPUID is supported
+        -   detect if long mode is available
+    3.  create paging set functions that:
+        -   set up identity paging [page table]
+        -   enable paging
+    4.  creating GDT
+    4.  add to start:
+        -   update stack pointer register
+        -   run the check functions
+        -   run the paging set functions
+        -   load GDT
+
+check functions:
+    function - a label with a ret [return] instruction at the end.
+    jmp - instruction to jump to a memory address.
+    call - instruction used to call a function.
+        unlike jmp, call pushes a return address to stack and at the end of a function, it jumps to it.
+    stack pointer - register that points to stack memory.
+
+stack:
+    if we do not want stack pointer to point at some important data / invalid memory
+    we need to update it.
+    code:
+        section .bss    
+            using the 0x1000 of allocated memory.
+        resb 64
+            reverse 64 bytes
+            reserving space for uninitialized data.
+            [because stack reserves data when we push]
+
+stack pointer:
+    should be updated right after start in order to points to stack.
+    code:
+        global start
+            //
+        section .text
+            using the code segment.
+        bits 32
+            because we have not changed to long mode yet.
+        mov esp, stack_top
+            move stack location to stack register.
+            it is stack_top because stack grows downwards.
+
+muiltiboot:
+    //
+
+CPUID:
+    //
+
+check_long_mode:
+    //
+
+pagin:
+    memory management scheme that separates virtual and physical memory.
+    basically address space is split into equal sized pages,
+    + a page table that connects virtual pages to their physical pages.
+    long mode uses page size of 0x1000 bits,
+    + 4 level page table:
+        -   Page-Map Level-4 Table [PML4]
+        -   Page-Directory Pointer Table [PDP]
+        -   Page-Directory Table [PD]
+        -   Page Table [PT]
+    
+page table:
+    each level contains 512 entries of 8 bytes.
+    //
+
+enabling paging:
+    //
+
+gdt:
+    used for segmentation.
+    will not be used for segmentation but still is required.
+    GRUB sets it to 32 bit but we need long mode GDT.
+    has a 64 bit entry [of long mode]:
+        0 - 41  :   ignored
+        42      :   //
+        43      :   set - code segment, else - data segment
+        44      :   1 - code & data segments
+        45 - 46 :   ring level [0 - 3]
+        47      :   1 - valid selector
+        48 - 52 :   ignored
+        53      :   set - 64 bit of code segment
+        54      :   0 - 64 bit segment
+        55 - 63 :   ignored
+
+set gdt:
+    //

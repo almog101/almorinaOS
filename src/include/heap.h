@@ -14,8 +14,8 @@ struct memory_segment {
 }; 
 typedef struct memory_segment memory_segment_t;
 
-void initialize_heap(uint64_t addr, uint64_t size);
-void* malloc(uint64_t size);
+extern void initialize_heap(uint64_t addr, uint64_t size);
+extern void* malloc(uint64_t size);
 
 
 #endif

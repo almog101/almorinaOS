@@ -98,20 +98,14 @@ void kernel_main(unsigned long magic, unsigned long addr)
 		return;
 	}
 
-	int i = 0;
-	multiboot_memory_map_t* ent;
 	extract_mmap(addr);
-	
-	while ((ent = get_mmap_entery(i++)))
-	{
-		  printf (" base_addr = 0x%x%x, length = 0x%x%x, type = 0x%x\n",
-		  (unsigned) (ent->addr >> 32),
-		  (unsigned) (ent->addr & 0xffffffff),
-		  (unsigned) (ent->len >> 32),
-		  (unsigned) (ent->len & 0xffffffff),
-		  (unsigned) ent->type);
-	}
+	multiboot_memory_map_t* ent = get_mmap_entery(0);
+	initialize_heap(ent->addr, ent->len);
+	printf("Heap initialized. address: 0x%x, length: 0x%x\n", ent->addr, ent->len);
 
-	initialize_heap(0x100000, 0x100000);
-	printf("%x", malloc(0x60));
+	char* str = (char*)malloc(10);
+	memset(str, 0, 10);
+	strcpy(str, "test str");
+
+	printf("new string: %s\n", str);
 }

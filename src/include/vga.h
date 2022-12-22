@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #define SCREEN_WIDTH 80
-#define SCREEN_HEIGT 25
+#define SCREEN_HEIGHT 25
 
 enum Color16
 {
@@ -45,6 +45,9 @@ void vga_setbg(uint8_t x, uint8_t y, color16_t c);
 void vga_setcolors(uint8_t x, uint8_t y, color16_t fg, color16_t bg);
 
 void vga_setch(uint8_t x, uint8_t y, char ch);
+char vga_getch(uint8_t x, uint8_t y);
+
+void vga_setcell(uint8_t x, uint8_t y, char ch, color16_t fg, color16_t bg);
 
 cursor_t vga_getcurr();
 void vga_setcurr(uint8_t x, uint8_t y);

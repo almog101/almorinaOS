@@ -6,7 +6,7 @@
 #define IDT_TA_CallGate         0b10001100
 #define IDT_TA_TrapGate         0b10001111
 
-struct idt64
+struct idt_descriptor_entry
 {
     uint16_t offset_low;            // lower bits
     uint16_t selector;              // select the segment
@@ -15,7 +15,16 @@ struct idt64
     uint16_t offset_mid;            // next 16 bits of offset0
     uint32_t offset_high;           // upper bits
     uint32_t zero;                  // do not use
-} typedef idt64;
+} typedef idt_descriptor_entry;
 
-void initialize_idt64();
-void isr1_handler();
+void set_offset(idt_descriptor_entry* descriptor, uint64_t offset);
+uint64_t get_offset(idt_descriptor_entry* descriptor);
+
+struct __attribute__ ((__packed__)) idt_register
+{
+    uint16_t limit;
+    uint64_t offset;
+}typedef idt_register;
+
+//void initialize_idt64();
+//void isr1_handler();

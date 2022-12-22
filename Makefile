@@ -14,6 +14,9 @@ build: create-bin $(ASM_OBJS) $(C_OBJS)
 	cp bin/kernel.bin iso/boot/kernel.bin
 	grub-mkrescue /usr/lib/grub/i386-pc -o bin/kernel.iso iso
 
+bin/interrupts.o: src/interrupts.c
+	x86_64-linux-gnu-gcc -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
+
 bin/%.o: src/%.c
 	x86_64-linux-gnu-gcc -c -ffreestanding $< -o $@ -I./src/include
 

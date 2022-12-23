@@ -1,6 +1,7 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
-        "idt.h": "c"
+        "idt.h": "c",
+        "stdio.h": "c"
     }
 }

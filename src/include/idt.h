@@ -25,6 +25,3 @@ struct __attribute__ ((__packed__)) idt_register
     uint16_t limit;
     uint64_t offset;
 }typedef idt_register;
-
-//void initialize_idt64();
-//void isr1_handler();

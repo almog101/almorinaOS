@@ -10,14 +10,17 @@ idt_register idt_r;
 extern idt_descriptor_entry _idt[256];
 
 void shell_parse(const char* line, int n, char argv[5][20], int argc);
+void add(int n1, int n2);
+void print(const char* format, char argv[5][20]);
+void help();
 void prepare_interrupts();
 
 void kernel_main() 
 {
-	//initialize_idt64();
 	prepare_interrupts();
 
-	asm("int $0x0e");
+	//asm("int $0x0e"); // the page fault error
+	//int num = 43 / 0;
 
 	cls();
 	printf("Welcome to\n");
@@ -97,6 +100,11 @@ void prepare_interrupts()
 	set_offset(interrupt_page_fault, (uint64_t)page_fault_handler);
 	interrupt_page_fault->type_attr = IDT_TA_InterruptGate;
 	interrupt_page_fault->selector = 0x08;
+
+	idt_descriptor_entry* interrupt_zero_devision = (idt_descriptor_entry*)(idt_r.offset + 0x0 * sizeof(idt_descriptor_entry));
+	set_offset(interrupt_zero_devision, (uint64_t)zero_devision_handler);
+	interrupt_zero_devision->type_attr = IDT_TA_InterruptGate;
+	interrupt_zero_devision->selector = 0x08;
 
 	asm("lidt %0" : : "m" (idt_r));
 }

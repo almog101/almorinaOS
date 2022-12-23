@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "string.h"
+#include <stdint.h>
 
 void strip_spaces(char* s)
 {
@@ -83,4 +84,51 @@ int eval(const char* expression)
 	}
 
 	return *nums;
+}
+
+
+/* this function splits the command into its arguments 
+ * and returns the number of them */
+int shell_parse(const char* line, char*** argv, int argc)
+{
+	char** args = 0;
+	uint8_t args_count = 0;
+
+	char* start = line;
+	char* end = line;
+
+	do
+	{
+		end = strchr(start, ' ');
+		if (end == 0)
+		{
+			strcpy(argv[args_count], start);
+			break;
+		}
+		memcpy(argv[args_count], start, (int)(end-start));
+
+		start = end+1;
+	} while(args_count++ < argc);
+}
+
+void e() {}
+
+void shell_execute()
+{
+	char data[128] = "print hello%cworld @";
+	char args[5][20] = {0};
+	
+	//shell_parse(data, 128, args, 5);
+
+	if (strcmp(args[0], "add") == 0)
+		e();//add(atoi(args[1]), atoi(args[2]));
+	else if (strcmp(args[0], "print") == 0)
+		e();//print(args[1], args);
+	else if (strcmp(args[0], "help") == 0)
+		e();//help();
+}
+
+void main()
+{
+
 }

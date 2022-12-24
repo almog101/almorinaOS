@@ -1,4 +1,4 @@
 all: main
 
 main: shell.c
-	gcc shell.c -o shell
+	gcc -g -Wall shell.c -o shell

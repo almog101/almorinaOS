@@ -89,8 +89,10 @@ int eval(const char* expression)
 
 /* this function splits the command into its arguments 
  * and returns the number of them */
-int shell_parse(const char* line, char*** argv, int argc)
+int shell_parse(const char* line, char*** argv)
 {
+	int size = strlen(line);
+
 	char** args = 0;
 	uint8_t args_count = 0;
 
@@ -99,36 +101,38 @@ int shell_parse(const char* line, char*** argv, int argc)
 
 	do
 	{
+		// find the end of the argumnet
 		end = strchr(start, ' ');
 		if (end == 0)
-		{
-			strcpy(argv[args_count], start);
-			break;
-		}
-		memcpy(argv[args_count], start, (int)(end-start));
+			end = line + size;
 
+		// copy the argument into new string
+		char* arg = malloc(end-start+1);
+		memcpy(arg, start, end-start);
+		arg[end-start] = 0;
+		
+		// add the argument to args list
+		args = realloc(args, sizeof(char*) * (++args_count));
+		args[args_count-1] = arg;
+		
 		start = end+1;
-	} while(args_count++ < argc);
+	} while(end < line + size - 1);
+
+	*argv = args;
+	return args_count;
 }
 
-void e() {}
 
 void shell_execute()
 {
-	char data[128] = "print hello%cworld @";
-	char args[5][20] = {0};
-	
-	//shell_parse(data, 128, args, 5);
-
-	if (strcmp(args[0], "add") == 0)
-		e();//add(atoi(args[1]), atoi(args[2]));
-	else if (strcmp(args[0], "print") == 0)
-		e();//print(args[1], args);
-	else if (strcmp(args[0], "help") == 0)
-		e();//help();
 }
 
 void main()
 {
+	char line[] = "another test just to see if it works";
+	char** args;
+	int args_count = shell_parse(line, &args);
 
+	for (int i = 0; i<args_count; i++)
+		printf("arg %d: %s\n", i, args[i]);
 }

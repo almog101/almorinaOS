@@ -1,7 +1,7 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-int eval(const char* expression);
+void shell_execute(char** argv, int argc);
 
 #endif
 

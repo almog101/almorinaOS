@@ -2,6 +2,16 @@
 #include "string.h"
 #include <stdint.h>
 
+typedef void (*SHELL_COMMAND_CALLBACK)(char**, int);
+
+struct shell_command
+{
+	const char* command;
+	int min_args;
+	SHELL_COMMAND_CALLBACK callback;
+};
+
+
 void strip_spaces(char* s)
 {
 	const char* d = s;
@@ -94,7 +104,7 @@ int shell_parse(const char* line, char*** argv)
 	int size = strlen(line);
 
 	char** args = 0;
-	uint8_t args_count = 0;
+	uint8_t argc = 0;
 
 	char* start = line;
 	char* end = line;
@@ -112,27 +122,52 @@ int shell_parse(const char* line, char*** argv)
 		arg[end-start] = 0;
 		
 		// add the argument to args list
-		args = realloc(args, sizeof(char*) * (++args_count));
-		args[args_count-1] = arg;
+		args = realloc(args, sizeof(char*) * (++argc));
+		args[argc-1] = arg;
 		
 		start = end+1;
 	} while(end < line + size - 1);
 
 	*argv = args;
-	return args_count;
+	return argc;
 }
 
-
-void shell_execute()
+void echo(char** argv, int argc)
 {
+	// TODO
+}
+
+struct shell_command shell_callback[] = {
+	// COMMAND	MIN ARGS	CALLBACK FUNC
+	{"echo", 	2, 			echo},
+};
+
+void shell_execute(char** argv, int argc)
+{
+	if (argc < 1)
+		return;
+
+	for (int i = 0; i<sizeof(shell_callback)/sizeof(struct shell_command); i++)
+	{
+		if (strcmp(argv[0], shell_callback[i].command) != 0)
+			continue;
+
+		if (argc < shell_callback[i].min_args)
+		{
+			printf("Not enough arguments for '%s' command!\n", shell_callback[i].command);
+			break;
+		}
+
+		shell_callback[i].callback(argv, argc);
+	}
 }
 
 void main()
 {
-	char line[] = "another test just to see if it works";
+	char line[] = "echo 1";
+	
 	char** args;
-	int args_count = shell_parse(line, &args);
+	int argc=shell_parse(line, &args);
 
-	for (int i = 0; i<args_count; i++)
-		printf("arg %d: %s\n", i, args[i]);
+	shell_execute(args, argc);
 }

@@ -6,8 +6,8 @@
 #include <stdbool.h>
 #include "keyboard.h"
 
-static color16_t bg_color = BLUE;
-static color16_t fg_color = WHITE;
+static color16_t bg_color = BLACK;
+static color16_t fg_color = LIGHTRED;
 
 void scroll(cursor_t* curr)
 {
@@ -151,4 +151,19 @@ void printf(const char* format, ...)
 	}
 
 	va_end ( arguments );                  // Cleans up the list
+}
+
+void fgets(char* dest, int n)
+{
+	char temp = keyboard_getch(), ch =temp;
+	int i =0;
+	do
+	{
+		ch = keyboard_getch();
+		if (ch != temp && ch)
+		{
+			temp = ch;
+			dest[i++] = ch;
+		}
+	} while(i<n && ch != NEWLINE_CHAR);
 }

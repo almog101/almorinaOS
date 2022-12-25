@@ -137,10 +137,28 @@ void echo(char** argv, int argc)
 	// TODO
 }
 
+
+void set(char** argv, int argc)
+{
+	for (int i =0; i<argc; i++)
+		printf("%s\n", argv[i]);
+}
+
+void help(char** argv, int argc);
+
 struct shell_command shell_callback[] = {
 	// COMMAND	MIN ARGS	CALLBACK FUNC
 	{"echo", 	2, 			echo},
+	{"set", 	2, 			set},
+	{"help", 	1, 			help},
 };
+
+void help(char** argv, int argc)
+{
+	for (int i = 0; i<sizeof(shell_callback)/sizeof(struct shell_command); i++)
+		printf("%s ", shell_callback[i].command);
+	putchar('\n');
+}
 
 void shell_execute(char** argv, int argc)
 {
@@ -155,19 +173,41 @@ void shell_execute(char** argv, int argc)
 		if (argc < shell_callback[i].min_args)
 		{
 			printf("Not enough arguments for '%s' command!\n", shell_callback[i].command);
-			break;
+			return;
 		}
 
 		shell_callback[i].callback(argv, argc);
+		return;
 	}
+
+	printf("invalid command!\n");
 }
 
 void main()
 {
-	char line[] = "echo 1";
+	char line[100] = {0};
 	
-	char** args;
-	int argc=shell_parse(line, &args);
+	do 
+	{
+		printf("command?> ");
+		fgets(line, sizeof(line), stdin);
 
-	shell_execute(args, argc);
+		for (char* i = line; *i != 0; i++)
+			if (*i == '\n') *i =0;
+
+		if (strcmp(line, "exit") == 0)
+			break;
+
+		char** args;
+		int argc=shell_parse(line, &args);
+
+		shell_execute(args, argc);
+
+		//cleanup
+		for (int i = 0; i<argc; i ++)
+			free(args[i]);
+		free(args);
+
+	} while(1);
+
 }

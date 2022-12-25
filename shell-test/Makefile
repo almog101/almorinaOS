@@ -1,4 +1,7 @@
-all: main
+all: build
 
-main: shell.c
+build: shell.c
 	gcc -g -Wall shell.c -o shell
+
+clean:
+	rm -f shell

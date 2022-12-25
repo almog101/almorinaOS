@@ -1,4 +1,4 @@
-#include "include/idt.h"
+#include "idt.h"
 
 /*
 saves the first 16 bits of offset

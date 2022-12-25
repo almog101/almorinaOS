@@ -6,15 +6,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 #define BACKSPACE_CHAR 0x08
 #define TAB_CHAR 0x09
 #define RETURN_CHAR '\r'
 #define NEWLINE_CHAR '\n'
 #define BLANK_CHAR ' '
 
-static color16_t bg_color = BLUE;
-static color16_t fg_color = WHITE;
+static color16_t bg_color = BLACK;
+static color16_t fg_color = LIGHTRED;
 
 void scroll(cursor_t* curr)
 {

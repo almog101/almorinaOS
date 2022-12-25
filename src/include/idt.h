@@ -1,11 +1,13 @@
 #pragma once
 #include <stdio.h>
 
-// self explanatory
+// types of idt gates [self explanatory]
 #define IDT_TA_InterruptGate    0b10001110
 #define IDT_TA_CallGate         0b10001100
 #define IDT_TA_TrapGate         0b10001111
 
+// data structure to represent the interrupt descriptor
+// needed for handling interrupts
 struct idt_descriptor_entry
 {
     uint16_t offset_low;            // lower bits
@@ -17,9 +19,13 @@ struct idt_descriptor_entry
     uint32_t zero;                  // do not use
 } typedef idt_descriptor_entry;
 
+// set & get offset of the interrupt descriptor
+// needed for convenience purposes only
 void set_offset(idt_descriptor_entry* descriptor, uint64_t offset);
 uint64_t get_offset(idt_descriptor_entry* descriptor);
 
+// data structure to represent an idt register
+// needed for calling the descriptor
 struct __attribute__ ((__packed__)) idt_register
 {
     uint16_t limit;

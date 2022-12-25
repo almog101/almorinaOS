@@ -1,37 +1,29 @@
 #include "idt.h"
-#include "keyboard.h"
 
-extern idt64 _idt[256];
-extern uint64_t isr1;
-extern void load_idt();
-
-extern void initialize_idt64()
+/*
+saves the first 16 bits of offset
+then the rest 16 bits
+and then the last 32 bits
+from the given offset to the given descriptor
+*/
+void set_offset(idt_descriptor_entry* descriptor, uint64_t offset)
 {
-    for(uint64_t t = 0; t < 256; t++)
-    {
-        _idt[t].zero = 0;
-        _idt[t].offset_low = (uint16_t)(((uint64_t)&isr1 & 0x000000000000FFFF));
-        _idt[t].offset_mid = (uint16_t)(((uint64_t)&isr1 & 0x00000000FFFF0000) >> 16);
-        _idt[t].offset_high = (uint16_t)(((uint64_t)&isr1 & 0xFFFFFFFF00000000) >> 32);
-        _idt[t].ist = 0;
-        _idt[t].selector = 0x08;
-        _idt[t].type_attr = IDT_TA_InterruptGate;
-    }
-
-    outb(0x21, 0xfd);
-    outb(0xa1, 0xff);
-    load_idt();
+    descriptor->offset_low = (uint16_t)(offset & 0x000000000000ffff);
+    descriptor->offset_mid = (uint16_t)((offset & 0x00000000ffff0000) >> 16);
+    descriptor->offset_high = (uint32_t)((offset & 0xffffffff00000000) >> 32);
 }
 
-extern void isr1_handler()
+/*
+copies to a variable all the 32 bits of the offset of the given descriptor
+and than returns the variable that contains the given descriptor's offset
+*/
+uint64_t get_offset(idt_descriptor_entry* descriptor)
 {
-	uint8_t scan = inb(0x60);
-	uint8_t ch = 0;
+    uint64_t offset = 0;
 
-	if (scan < 0x3a)
-		ch = keyboard_scancode_to_keycode(scan);
-	keyboard_handler(scan,ch);
+    offset |= (uint64_t)(descriptor->offset_low);
+    offset |= (uint16_t)(descriptor->offset_mid) << 16;
+    offset |= (uint16_t)(descriptor->offset_high) << 32;
 
-    outb(0x20, 0x20);
-    outb(0xa0, 0x20);
+    return offset;
 }

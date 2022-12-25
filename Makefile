@@ -17,7 +17,15 @@ build: create-bin $(ASM_OBJS) $(C_OBJS)
 	cp bin/kernel.bin iso/boot/kernel.bin
 	grub-mkrescue -o bin/kernel.iso iso
 
+<<<<<<< HEAD
+bin/interrupts.o: src/interrupts.c
+	x86_64-linux-gnu-gcc -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
+
+bin/%.o: src/%.c
+	x86_64-linux-gnu-gcc -c -ffreestanding $< -o $@ -I./src/include
+=======
 build-debug: build create-debug-info
+>>>>>>> f621c05855a67610217ffbfba4f2bdc2d021cd94
 
 create-debug-info:
 	objcopy --only-keep-debug bin/kernel.bin bin/kernel.sym

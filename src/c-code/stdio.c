@@ -6,8 +6,8 @@
 #include <stdbool.h>
 #include "keyboard.h"
 
-static color16_t bg_color = BLUE;
-static color16_t fg_color = WHITE;
+static color16_t bg_color = BLACK;
+static color16_t fg_color = LIGHTRED;
 
 void scroll(cursor_t* curr)
 {

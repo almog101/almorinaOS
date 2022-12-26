@@ -11,11 +11,14 @@ struct memory_segment {
 	struct memory_segment* 	next_free_seg;
 	struct memory_segment* 	prev_free_seg;
 	bool 					free;
-}; 
-typedef struct memory_segment memory_segment_t;
+}typedef memory_segment_t;
 
+// functions to allocate memory
 extern void initialize_heap(uint64_t addr, uint64_t size);
 extern void* malloc(uint64_t size);
 
+// functions to free memory
+void free(void* address);
+void  combine_segments(memory_segment_t *first_seg, memory_segment_t *second_seg);
 
 #endif

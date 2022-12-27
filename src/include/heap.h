@@ -19,6 +19,6 @@ extern void* malloc(uint64_t size);
 
 // functions to free memory
 void free(void* address);
-void  combine_segments(memory_segment_t *first_seg, memory_segment_t *second_seg);
+void combine_segments(memory_segment_t *first_seg, memory_segment_t *second_seg);
 
 #endif

@@ -97,11 +97,19 @@ void free(void* address)
 			curr_memory_seg->prev_free_seg->next_free_seg = curr_memory_seg;
 	}
 
-	if (curr_memory_seg->next_free_seg != 0)
-		curr_memory_seg->next_free_seg->prev_free_seg = curr_memory_seg;
+	if (curr_memory_seg->next_seg != 0)
+	{
+		curr_memory_seg->next_seg->prev_seg = curr_memory_seg;
+		if (curr_memory_seg->next_seg->free)
+			combine_segments(curr_memory_seg, curr_memory_seg->next_seg);
+	}
 
-	if (curr_memory_seg->prev_free_seg != 0)
-		curr_memory_seg->prev_free_seg->next_free_seg = curr_memory_seg;
+	if (curr_memory_seg->prev_seg != 0)
+	{
+		curr_memory_seg->prev_seg->next_seg = curr_memory_seg;
+		if (curr_memory_seg->prev_seg->free)
+			combine_segments(curr_memory_seg, curr_memory_seg->prev_seg);
+	}
 }
 
 /*
@@ -110,10 +118,28 @@ our malloc function skips over small memory blocks that we might want to use lat
 so this function is needed to combine those small blocks of free memory
 with another free blocks of memory if they are right next to them
 */
-void  combine_segments(memory_segment_t *first_seg, memory_segment_t *second_seg)
+void  combine_segments(memory_segment_t *f, memory_segment_t *s)
 {
-	if((first_seg == 0) || (second_seg == 0))
+	if((f == 0) || (s == 0))
 		return;
 
-	//
+	if(f < s)
+	{
+		f->len += s->len + sizeof(memory_segment_t);
+		f->next_seg = s->next_seg;
+		f->next_free_seg = s->next_free_seg;
+		s->next_seg->prev_seg = f;
+		s->next_seg->prev_free_seg = f;
+		s->next_free_seg->prev_free_seg = f;
+	}
+
+	else
+	{
+		s->len += f->len + sizeof(memory_segment_t);
+		s->next_seg = f->next_seg;
+		s->next_free_seg = f->next_free_seg;
+		f->next_seg->prev_seg = s;
+		f->next_seg->prev_free_seg = s;
+		f->next_free_seg->prev_free_seg = s;
+	}
 }

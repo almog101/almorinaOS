@@ -134,14 +134,26 @@ int shell_parse(const char* line, char*** argv)
 
 void echo(char** argv, int argc)
 {
-	// TODO
+	for (int i =1; i<argc; i++)
+	{
+		for (char* p_arg = argv[i]; *p_arg != 0; p_arg++)
+		{
+			if (*p_arg == '$')
+			{
+				// TODO: print_var(p_arg);
+				break;
+			}
+			putchar(*p_arg);
+		}
+		putchar(' ');
+	}
+	putchar('\n');
 }
 
 
 void set(char** argv, int argc)
 {
-	for (int i =0; i<argc; i++)
-		printf("%s\n", argv[i]);
+	// TODO
 }
 
 void help(char** argv, int argc);

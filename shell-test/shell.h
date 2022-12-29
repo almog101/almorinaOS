@@ -6,7 +6,7 @@ enum SHELL_TYPE
 	INT,
 	FLOAT,
 	CHAR,
-	STRING
+	STRING,
 };
 
 struct shell_list
@@ -16,9 +16,21 @@ struct shell_list
 	void* data;
 	enum SHELL_TYPE type;
 };
-typdef struct shell_list shell_list_t;
+typedef struct shell_list shell_list_t;
+
+extern shell_list_t* shell_variables = 0;
+
+typedef void (*SHELL_COMMAND_CALLBACK)(char**, int);
+
+struct shell_command
+{
+	const char* command;
+	int min_args;
+	SHELL_COMMAND_CALLBACK callback;
+};
 
 void shell_execute(char** argv, int argc);
+
 
 #endif
 

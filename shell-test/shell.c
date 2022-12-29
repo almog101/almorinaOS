@@ -1,16 +1,7 @@
 #include <stdio.h>
 #include "string.h"
 #include <stdint.h>
-
-typedef void (*SHELL_COMMAND_CALLBACK)(char**, int);
-
-struct shell_command
-{
-	const char* command;
-	int min_args;
-	SHELL_COMMAND_CALLBACK callback;
-};
-
+#include "shell.h"
 
 void strip_spaces(char* s)
 {
@@ -150,10 +141,35 @@ void echo(char** argv, int argc)
 	putchar('\n');
 }
 
-
 void set(char** argv, int argc)
 {
-	// TODO
+	shell_list_t* node = malloc(sizeof(shell_list_t));
+	
+	node->name = malloc(strlen(argv[1]));
+	strcpy(node->name, argv[1]);
+	node->data = malloc(strlen(argv[2]));
+	strcpy(node->data, argv[2]);
+	node->type = STRING;
+
+    if(shell_variables == NULL) {
+    	shell_variables = node;
+      	return;
+    }
+
+	shell_list_t* curr = shell_variables;
+  	while(curr->next != NULL)
+    	curr = curr->next;
+  	curr->next = node;
+}
+
+void vars(char** argv, int argc)
+{
+	shell_list_t* curr = shell_variables;
+  	while(curr != NULL)
+	{
+		printf("$%s = '%s'\n", curr->name, curr->data);
+		curr = curr->next;
+	}
 }
 
 void help(char** argv, int argc);
@@ -161,8 +177,9 @@ void help(char** argv, int argc);
 struct shell_command shell_callback[] = {
 	// COMMAND	MIN ARGS	CALLBACK FUNC
 	{"echo", 	2, 			echo},
-	{"set", 	2, 			set},
+	{"set", 	3, 			set},
 	{"help", 	1, 			help},
+	{"vars",		1,			vars}
 };
 
 void help(char** argv, int argc)

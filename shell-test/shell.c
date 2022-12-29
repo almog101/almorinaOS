@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "string.h"
 #include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include "shell.h"
 
 void strip_spaces(char* s)
@@ -13,12 +15,27 @@ void strip_spaces(char* s)
     } while (*s++ = *d++);
 }
 
-int isop(char c)
+bool isop(char c)
 {
 	return ((c == '-') || (c == '+') || (c == '/') || (c == '*'));
 }
 
-int eval(const char* expression)
+bool isdigit(char c)
+{
+	return (c>='0') && (c<='9');
+}
+
+bool is_exp(char* str)
+{
+	while(*str != 0)
+		if (isop(*str) != true && isdigit(*str) != true && *str != ' ')
+			return false;
+		else
+			str++;
+	return true;
+}
+
+int shell_eval_math_exp(const char* expression)
 {
 	char exp[100] ={0};
 	strcpy(exp, expression);
@@ -87,6 +104,32 @@ int eval(const char* expression)
 	return *nums;
 }
 
+char *shell_combine_strings(char **str_array, size_t size) {
+  size_t total_length = 0;
+
+  // Calculate the total length of the combined string
+  for (size_t i = 0; i < size; i++) {
+    total_length += strlen(str_array[i]) + 1;
+  }
+  total_length--;
+
+  // Allocate a buffer for the combined string
+  char *combined_str = malloc(total_length + 1);
+
+  // Copy the strings into the combined string buffer
+  size_t pos = 0;
+  for (size_t i = 0; i < size; i++) {
+    size_t str_len = strlen(str_array[i]);
+    memcpy(combined_str + pos, str_array[i], str_len);
+	combined_str[pos+str_len] = ' ';
+    pos += str_len+1;
+  }
+
+  // Null-terminate the combined string
+  combined_str[total_length] = '\0';
+
+  return combined_str;
+}
 
 /* this function splits the command into its arguments 
  * and returns the number of them */
@@ -126,40 +169,57 @@ int shell_parse(const char* line, char*** argv)
 void echo(char** argv, int argc)
 {
 	for (int i =1; i<argc; i++)
-	{
-		for (char* p_arg = argv[i]; *p_arg != 0; p_arg++)
-		{
-			if (*p_arg == '$')
-			{
-				// TODO: print_var(p_arg);
-				break;
-			}
-			putchar(*p_arg);
-		}
-		putchar(' ');
-	}
+		printf("%s ", argv[i]);
 	putchar('\n');
+}
+
+void set_variable(shell_list_t* node, const char* name, const char* data)
+{
+	node->name = malloc(strlen(name));
+	strcpy(node->name, name);
+
+	if (is_exp(data))
+	{
+		node->data = malloc(sizeof(int));
+		*(int*)(node->data) = shell_eval_math_exp(data);
+		node->type = SHELL_TYPE_INT;
+	}
+	else
+	{
+		node->data = data;
+		node->type = SHELL_TYPE_STRING;
+	}
+	node->next = 0;
 }
 
 void set(char** argv, int argc)
 {
+	char* data = shell_combine_strings(argv+2, argc-2);
+
+	// checks if variables with that name already exists
+	// if it does, we only change is value
+	shell_list_t* curr= shell_variables;
+	while (curr)
+	{
+		if (strcmp(curr->name, argv[1]) == 0)
+		{
+			set_variable(curr, argv[1], data);
+			return;
+		}
+		curr = curr->next;
+	}
+
+	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
+	set_variable(node, argv[1], data);
 	
-	node->name = malloc(strlen(argv[1]));
-	strcpy(node->name, argv[1]);
-	node->data = malloc(strlen(argv[2]));
-	strcpy(node->data, argv[2]);
-	node->type = STRING;
-
-    if(shell_variables == NULL) {
+    if(shell_variables == NULL) 
     	shell_variables = node;
-      	return;
-    }
-
-	shell_list_t* curr = shell_variables;
-  	while(curr->next != NULL)
-    	curr = curr->next;
-  	curr->next = node;
+	else 
+	{
+		node->next = shell_variables;
+		shell_variables = node;
+	}
 }
 
 void vars(char** argv, int argc)
@@ -167,7 +227,17 @@ void vars(char** argv, int argc)
 	shell_list_t* curr = shell_variables;
   	while(curr != NULL)
 	{
-		printf("$%s = '%s'\n", curr->name, curr->data);
+		printf("$%s = ", curr->name);
+		
+		switch (curr->type) 
+		{
+			case SHELL_TYPE_INT:
+				printf("%d\n", *(int*)(curr->data));
+				break;
+			case SHELL_TYPE_STRING:
+				printf("%s\n", curr->data);
+				break;
+		}
 		curr = curr->next;
 	}
 }
@@ -179,7 +249,7 @@ struct shell_command shell_callback[] = {
 	{"echo", 	2, 			echo},
 	{"set", 	3, 			set},
 	{"help", 	1, 			help},
-	{"vars",		1,			vars}
+	{"vars",	1,			vars}
 };
 
 void help(char** argv, int argc)
@@ -205,6 +275,9 @@ void shell_execute(char** argv, int argc)
 			return;
 		}
 
+		// TODO
+		// replace all variables for their values
+		// shell_insert_vars_values(char** argv, int argc)
 		shell_callback[i].callback(argv, argc);
 		return;
 	}

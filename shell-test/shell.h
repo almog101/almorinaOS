@@ -3,10 +3,8 @@
 
 enum SHELL_TYPE
 {
-	INT,
-	FLOAT,
-	CHAR,
-	STRING,
+	SHELL_TYPE_INT,
+	SHELL_TYPE_STRING,
 };
 
 struct shell_list

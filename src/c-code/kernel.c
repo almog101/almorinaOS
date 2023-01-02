@@ -29,10 +29,10 @@ void kernel_main()
 
 	printf("\n\n[command] $ \n");
 
-	char data[128] = "add 1 2";
+	/*char data[128] = "add 1 2";
 	char args[5][20] = {0};
 	
-	shell_parse(data, 128, args, 5);
+	shell_parse(data, 128, args, 5);*/
 }
 
 void shell_parse(const char* line, int n, char argv[5][20], int argc)
@@ -106,5 +106,16 @@ void prepare_interrupts()
 	interrupt_zero_devision->type_attr = IDT_TA_InterruptGate;
 	interrupt_zero_devision->selector = 0x08;
 
+	idt_descriptor_entry* interrupt_keyboard = (idt_descriptor_entry*)(idt_r.offset + 0x21 * sizeof(idt_descriptor_entry));
+	set_offset(interrupt_keyboard, (uint64_t)key_board_handler);
+	interrupt_keyboard->type_attr = IDT_TA_InterruptGate;
+	interrupt_keyboard->selector = 0x08;
+
 	asm("lidt %0" : : "m" (idt_r));
+
+	remap_pic();
+	out_b(PIC1_DATA, 0b11111101);
+	out_b(PIC2_DATA, 0b11111111);
+
+	asm ("sti");
 }

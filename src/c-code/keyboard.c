@@ -60,4 +60,3 @@ static unsigned char scancodes_table[128] =
     0,	/* F12 Key */
     0,	/* All other keys are undefined */
 };
-

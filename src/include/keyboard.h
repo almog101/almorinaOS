@@ -9,7 +9,8 @@
 #define BLANK_CHAR ' '
 
 
-char key_scancode_to_keycode(uint8_t scancode);
+char keyboard_scancode_to_keycode(uint8_t scancode);
 char keyboard_getch();
+void help_me();
 
 #endif

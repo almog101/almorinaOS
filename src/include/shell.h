@@ -16,8 +16,6 @@ struct shell_list
 };
 typedef struct shell_list shell_list_t;
 
-extern shell_list_t* shell_variables = 0;
-
 typedef void (*SHELL_COMMAND_CALLBACK)(char**, int);
 
 struct shell_command
@@ -31,5 +29,3 @@ void shell_execute(char** argv, int argc);
 void shell_main();
 
 #endif
-
-

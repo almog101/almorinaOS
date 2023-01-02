@@ -5,6 +5,8 @@
 #include "memory.h"
 #include "shell.h"
 
+extern shell_list_t* shell_variables = 0;
+
 void strip_spaces(char* s)
 {
 	const char* d = s;

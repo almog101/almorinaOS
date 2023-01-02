@@ -1,10 +1,15 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
+        "cstdio": "c",
+        "cstdlib": "c",
         "idt.h": "c",
         "stdio.h": "c",
         "stdint.h": "c",
-        "cstdio": "c",
-        "cstdlib": "c"
+        "string.h": "c",
+        "stdbool.h": "c",
+        "memory.h": "c",
+        "shell.h": "c",
+        "mmap.h": "c"
     }
 }

@@ -1,7 +1,6 @@
 #include "mmap.h"
 #include <stdint.h>
 
-
 static multiboot_memory_map_t mmap[10] = {0};
 static uint8_t entries_count = 0;
 

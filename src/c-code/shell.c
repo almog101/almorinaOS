@@ -297,7 +297,7 @@ void shell_main()
 		fgets(line, sizeof(line));
 
 		for (char* i = line; *i != 0; i++)
-			if (*i == '\n') *i =0;
+			if (*i == '\n') *i = 0;
 
 		if (strcmp(line, "exit") == 0)
 			break;

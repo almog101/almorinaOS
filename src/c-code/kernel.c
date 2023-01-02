@@ -24,5 +24,5 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	initialize_heap(ent->addr, ent->len);
 	printf("Heap initialized. address: 0x%x, length: 0x%x\n", ent->addr, ent->len);
 
-	shell_main();
+	//shell_main();
 }

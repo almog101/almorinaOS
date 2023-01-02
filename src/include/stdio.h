@@ -10,4 +10,6 @@ void putc(char c);
 void puts(char *c);
 void cls();
 
+void fgets(char* dest, int n);
+
 #endif

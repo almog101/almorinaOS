@@ -8,9 +8,7 @@
 #define NEWLINE_CHAR '\n'
 #define BLANK_CHAR ' '
 
-
-char keyboard_scancode_to_keycode(uint8_t scancode);
+void keyboard_handler(uint8_t scancode);
 char keyboard_getch();
-void help_me();
 
 #endif

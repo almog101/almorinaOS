@@ -30,11 +30,10 @@ void __attribute__ ((interrupt)) zero_devision_handler(struct interrupt_frame* f
 
 void __attribute__ ((interrupt)) key_board_handler(struct interrupt_frame* frame)
 {
-    printf("a");
     uint8_t scancode = in_b(0x60);
-    pic_end_master();
+    keyboard_handler(scancode);
 
-    //char scanned_ch = keyboard_scancode_to_keycode(scancode);
+    pic_end_master();
 }
 
 void remap_pic()

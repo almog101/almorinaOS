@@ -81,10 +81,14 @@ void puts(char *c)
 
 void puth(int n, bool uppercase)
 {
-    puts("0x");
-    
 	const int BYTE_SIZE = 8;
 	const int DIGIT_BITS = 4;
+
+	if (n == 0)
+	{
+		putc('0');
+		return;
+	}
 
 	int digit;
     bool noZeroes = true;

@@ -136,6 +136,9 @@ error:
 start:
 	mov esp, stack_top ; move the stack location to stack register
 
+	push eax
+	push ebx
+
 	call detect_multiboot
 	call detect_cpuid
 	call detect_long_mode
@@ -144,6 +147,11 @@ start:
 	call enable_paging
 
 	lgdt [gdt64.pointer]
+
+popy:
+	pop ebx
+	pop eax
+
 	jmp gdt64.code_segment:long_mode_start
 
 	hlt
@@ -153,8 +161,12 @@ section .text
 [bits 64]
 
 long_mode_start:
-    ; load null into all data segment registers
-    mov ax, 0
+	
+	mov rdi, rax
+	mov rsi, rbx
+
+    ;load null into all data segment registers
+	mov ax, 0
     mov ss, ax
     mov ds, ax
     mov es, ax

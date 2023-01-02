@@ -2,6 +2,7 @@
 #include "string.h"
 #include "stdint.h"
 #include "stdbool.h"
+#include "memory.h"
 #include "shell.h"
 
 void strip_spaces(char* s)
@@ -136,8 +137,8 @@ int shell_parse(const char* line, char*** argv)
 {
 	int size = strlen(line);
 
-	char** args = 0;
 	uint8_t argc = 0;
+	char** args = malloc(sizeof(char*) * (++argc));
 
 	char* start = line;
 	char* end = line;
@@ -155,7 +156,7 @@ int shell_parse(const char* line, char*** argv)
 		arg[end-start] = 0;
 		
 		// add the argument to args list
-		args = realloc(args, sizeof(char*) * (++argc));
+		// args = realloc(args, sizeof(char*) * (++argc));
 		args[argc-1] = arg;
 		
 		start = end+1;
@@ -169,7 +170,7 @@ void echo(char** argv, int argc)
 {
 	for (int i =1; i<argc; i++)
 		printf("%s ", argv[i]);
-	putchar('\n');
+	putc('\n');
 }
 
 void set_variable(shell_list_t* node, const char* name, const char* data)
@@ -255,7 +256,7 @@ void help(char** argv, int argc)
 {
 	for (int i = 0; i<sizeof(shell_callback)/sizeof(struct shell_command); i++)
 		printf("%s ", shell_callback[i].command);
-	putchar('\n');
+	putc('\n');
 }
 
 void shell_execute(char** argv, int argc)
@@ -300,7 +301,7 @@ void shell_main()
 			break;
 
 		char** args;
-		int argc=shell_parse(line, &args);
+		int argc = shell_parse(line, &args);
 
 		shell_execute(args, argc);
 

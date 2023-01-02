@@ -53,3 +53,11 @@ int atoi(char* str)
 	return n;
 }
 
+int strlen(char* str)
+{
+	int n = 0;
+	while (*(str))
+		n++;  
+		str++;
+	return n;
+}

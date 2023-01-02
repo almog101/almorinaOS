@@ -1,8 +1,7 @@
-#include <stdio.h>
+#include "stdio.h"
 #include "string.h"
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdlib.h>
+#include "stdint.h"
+#include "stdbool.h"
 #include "shell.h"
 
 void strip_spaces(char* s)
@@ -104,11 +103,11 @@ int shell_eval_math_exp(const char* expression)
 	return *nums;
 }
 
-char *shell_combine_strings(char **str_array, size_t size) {
-  size_t total_length = 0;
+char *shell_combine_strings(char **str_array, uint64_t size) {
+  uint64_t total_length = 0;
 
   // Calculate the total length of the combined string
-  for (size_t i = 0; i < size; i++) {
+  for (uint64_t i = 0; i < size; i++) {
     total_length += strlen(str_array[i]) + 1;
   }
   total_length--;
@@ -117,9 +116,9 @@ char *shell_combine_strings(char **str_array, size_t size) {
   char *combined_str = malloc(total_length + 1);
 
   // Copy the strings into the combined string buffer
-  size_t pos = 0;
-  for (size_t i = 0; i < size; i++) {
-    size_t str_len = strlen(str_array[i]);
+  uint64_t pos = 0;
+  for (uint64_t i = 0; i < size; i++) {
+    uint64_t str_len = strlen(str_array[i]);
     memcpy(combined_str + pos, str_array[i], str_len);
 	combined_str[pos+str_len] = ' ';
     pos += str_len+1;
@@ -198,7 +197,7 @@ void set(char** argv, int argc)
 
 	// checks if variables with that name already exists
 	// if it does, we only change is value
-	shell_list_t* curr= shell_variables;
+	shell_list_t* curr = shell_variables;
 	while (curr)
 	{
 		if (strcmp(curr->name, argv[1]) == 0)
@@ -285,14 +284,14 @@ void shell_execute(char** argv, int argc)
 	printf("invalid command!\n");
 }
 
-void main()
+void shell_main()
 {
 	char line[100] = {0};
 	
 	do 
 	{
 		printf("command?> ");
-		fgets(line, sizeof(line), stdin);
+		fgets(line, sizeof(line));
 
 		for (char* i = line; *i != 0; i++)
 			if (*i == '\n') *i =0;

@@ -15,7 +15,6 @@ void keyboard_handler(uint8_t scancode, uint8_t ch)
 	curr_ch = ch;
 }
 
-
 char keyboard_getch()
 {
 	return curr_ch;

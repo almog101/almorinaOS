@@ -1,6 +1,8 @@
 #ifndef STDIO_H
 #define STDIO_H
 
+#define NULL (int64_t)0
+
 #include <stdint.h>
 
 void printf(const char* format, ...);

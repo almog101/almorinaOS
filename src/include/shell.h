@@ -28,7 +28,7 @@ struct shell_command
 };
 
 void shell_execute(char** argv, int argc);
-
+void shell_main();
 
 #endif
 

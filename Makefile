@@ -4,8 +4,8 @@ C_OBJS := $(patsubst src/c-code/%.c, bin/%.o,$(C_SRC))
 ASM_SRC := $(wildcard src/assembly/*.asm)
 ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
 
-CC=x86_64-elf-gcc
-LD=x86_64-elf-ld
+CC=x86_64-linux-gnu-gcc
+LD=x86_64-linux-gnu-ld
 
 all: build
 
@@ -38,6 +38,7 @@ run-gdb:
 
 clean:
 	rm -rf bin iso/boot/kernel.bin
+	rm -f shell
 
 docker-create:
 	docker build --network=host -t almorina-builder .  

@@ -198,6 +198,9 @@ start:
 	call setup_page_tables
 	call enable_paging
 
+	pop ebx
+	pop eax
+
 	;load the gdt to its register
 	lgdt [gdt64.pointer]
 	jmp gdt64.code_segment:long_mode_start

@@ -8,6 +8,8 @@
 #define NEWLINE_CHAR '\n'
 #define BLANK_CHAR ' '
 
+#define CAPS_LOCK 58
+
 void keyboard_handler(uint8_t scancode);
 char keyboard_getch();
 

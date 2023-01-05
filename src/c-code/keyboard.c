@@ -1,27 +1,37 @@
 #include <keyboard.h>
 #include "../include/stdio.h"
+#include "../include/stdbool.h"
 
 static unsigned char scancodes_table[128];
 
 char keyboard_scancode_to_keycode(uint8_t scancode)
 {
-  if(scancode > 58)
-    return 0;
+  if(scancode < 59)
+    return scancodes_table[scancode];
 
-  return scancodes_table[scancode];
+  return 0;
 }
 
 static char curr_ch = 0;
+static bool is_uppercase = false;
 
 void keyboard_handler(uint8_t scancode)
 {
   char ascii = keyboard_scancode_to_keycode(scancode);
 
-  if(ascii != 0)
+  if(ascii == CAPS_LOCK)
   {
-	  putc(ascii);
-	  curr_ch = ascii;
+    is_uppercase = !is_uppercase;
+    return;
   }
+
+  if(is_uppercase && (ascii >= 97) && (ascii <= 122))
+    putc(ascii - 32);
+  
+  else
+    putc(ascii);
+
+  curr_ch = ascii;
 }
 
 char keyboard_getch()
@@ -29,42 +39,20 @@ char keyboard_getch()
 	return curr_ch;
 }
 
+// https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html
 static unsigned char scancodes_table[128] =
 {
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
-  '9', '0', '-', '=', '\b',	/* Backspace */
-  '\t',			/* Tab */
-  'q', 'w', 'e', 'r',	/* 19 */
-  't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',	/* Enter key */
-    0,			/* 29   - Control */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
- '\'', '`',   0,		/* Left shift */
- '\\', 'z', 'x', 'c', 'v', 'b', 'n',			/* 49 */
-  'm', ',', '.', '/',   0,				/* Right shift */
+  0,  27, 
+  '1', '2', '3', '4', '5', '6', '7', '8',	'9', '0', '_', '=', '\b',
+  '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 
+  '\n',
+  0,
+  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '"', 
+  '~',   
+  0,
+  '\\', 
+  'z', 'x', 'c', 'v', 'b', 'n', 'm', '<', '>', '/', 0,
   '*',
-    0,	/* Alt */
-  ' ',	/* Space bar */
-    0,	/* Caps lock */
-    0,	/* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,	/* < ... F10 */
-    0,	/* 69 - Num lock*/
-    0,	/* Scroll Lock */
-    0,	/* Home key */
-    0,	/* Up Arrow */
-    0,	/* Page Up */
-  '-',
-    0,	/* Left Arrow */
-    0,
-    0,	/* Right Arrow */
-  '+',
-    0,	/* 79 - End key*/
-    0,	/* Down Arrow */
-    0,	/* Page Down */
-    0,	/* Insert Key */
-    0,	/* Delete Key */
-    0,   0,   0,
-    0,	/* F11 Key */
-    0,	/* F12 Key */
-    0,	/* All other keys are undefined */
-};	
+  0, ' ',
+  CAPS_LOCK,
+};

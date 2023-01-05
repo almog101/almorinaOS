@@ -68,6 +68,7 @@ void remap_pic()
     out_b(PIC1_DATA, a1);
     io_wait();
     out_b(PIC2_DATA, a2);
+    io_wait();
 }
 
 void pic_end_master()

@@ -8,6 +8,8 @@
 #define NEWLINE_CHAR '\n'
 #define BLANK_CHAR ' '
 
+#define LEFT_SHIFT 42
+#define RIGHT_SHIFT 54
 #define CAPS_LOCK 58
 
 void keyboard_handler(uint8_t scancode);

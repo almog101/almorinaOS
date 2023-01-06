@@ -138,35 +138,6 @@ char *shell_combine_strings(char **str_array, uint64_t size) {
  * and returns the number of them */
 int shell_parse(const char* line, char*** argv)
 {
-	/*int size = strlen(line);
-	uint8_t argc = 0;
-	char** args = malloc(sizeof(char*) * (++argc));
-
-	char* start = line;
-	char* end = line;
-
-	do
-	{
-		// find the end of the argumnet
-		end = strchr(start, ' ');
-		if (end == 0)
-			end = line + size;
-
-		// copy the argument into new string
-		char* arg = malloc(end-start + 1);
-		memcpy(arg, start, end-start);
-		arg[end-start] = 0;
-		
-		// add the argument to args list
-		// args = malloc(sizeof(char*) * (++argc));
-		args[argc - 1] = arg;
-		
-		start = end + 1;
-	} while(end < line + size - 1);
-
-	*argv = args;
-	return argc;*/
-
 	int size = strlen(line);
 	char* start = line;
 	char* end = line;

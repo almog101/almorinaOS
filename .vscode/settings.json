@@ -10,6 +10,8 @@
         "stdbool.h": "c",
         "memory.h": "c",
         "shell.h": "c",
-        "mmap.h": "c"
+        "mmap.h": "c",
+        "interrupts.h": "c",
+        "vga.h": "c"
     }
 }

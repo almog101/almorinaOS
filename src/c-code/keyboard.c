@@ -36,6 +36,12 @@ void keyboard_handler(uint8_t scancode)
 
 char keyboard_getch()
 {
+  if(curr_ch == '\n')
+  {
+    curr_ch = 0;
+    return '\n';
+  }
+
 	return curr_ch;
 }
 

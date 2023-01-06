@@ -159,8 +159,9 @@ void printf(const char* format, ...)
 
 void fgets(char* dest, int n)
 {
-	char temp = keyboard_getch(), ch =temp;
-	int i =0;
+	char temp = keyboard_getch(), ch = temp;
+	int i = 0;
+
 	do
 	{
 		ch = keyboard_getch();
@@ -169,5 +170,5 @@ void fgets(char* dest, int n)
 			temp = ch;
 			dest[i++] = ch;
 		}
-	} while(i<n && ch != NEWLINE_CHAR);
+	} while(i < n && ch != NEWLINE_CHAR);
 }

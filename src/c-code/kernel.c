@@ -16,10 +16,8 @@ void prepare_interrupts();
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	prepare_interrupts();
-
 	cls();
 	printf("Welcome to\n%s", ascii_data);
-	printf("\n\n[command] $ \n");
 
 	/* Make sure the magic number matches for memory mapping*/
 	if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
@@ -30,7 +28,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	extract_mmap(addr);
 	multiboot_memory_map_t* ent = get_mmap_entery(0);
 	initialize_heap(ent->addr, ent->len);
-	printf("Heap initialized. address: 0x%x, length: 0x%x\n\מ", ent->addr, ent->len);
+	printf("\n[Heap initialized. address: 0x%x, length: 0x%x]\n\n\מ", ent->addr, ent->len);
 
 	shell_main();
 }

@@ -4,6 +4,7 @@
 #include "stdbool.h"
 #include "memory.h"
 #include "shell.h"
+#include "heap.h"
 
 extern shell_list_t* shell_variables = 0;
 
@@ -137,8 +138,7 @@ char *shell_combine_strings(char **str_array, uint64_t size) {
  * and returns the number of them */
 int shell_parse(const char* line, char*** argv)
 {
-	int size = strlen(line);
-
+	/*int size = strlen(line);
 	uint8_t argc = 0;
 	char** args = malloc(sizeof(char*) * (++argc));
 
@@ -153,24 +153,52 @@ int shell_parse(const char* line, char*** argv)
 			end = line + size;
 
 		// copy the argument into new string
-		char* arg = malloc(end-start+1);
+		char* arg = malloc(end-start + 1);
 		memcpy(arg, start, end-start);
 		arg[end-start] = 0;
 		
 		// add the argument to args list
-		// args = realloc(args, sizeof(char*) * (++argc));
-		args[argc-1] = arg;
+		// args = malloc(sizeof(char*) * (++argc));
+		args[argc - 1] = arg;
 		
-		start = end+1;
+		start = end + 1;
 	} while(end < line + size - 1);
 
 	*argv = args;
-	return argc;
+	return argc;*/
+
+	int size = strlen(line);
+	char* start = line;
+	char* end = line;
+
+    int arg_count = count(line, ' ') + 1;
+    char** args = (char**)malloc(sizeof(char*) * (arg_count));
+
+    for (int i = 0; i < arg_count; i++)
+    {
+		// find the end of the argumnet
+		end = strchr(start, ' ');
+		if (end == 0)
+			end = line + size;
+
+		// copy the argument into new string
+		char* arg = malloc(end-start + 1);
+		memcpy(arg, start, end-start);
+		arg[end-start] = 0;
+		
+		args[i] = (char*)malloc(sizeof(char) * (end-start));
+		args[i] = arg;
+
+        start = end + 1;
+	}
+
+    *argv = args;
+	return arg_count;
 }
 
 void echo(char** argv, int argc)
 {
-	for (int i =1; i<argc; i++)
+	for (int i = 1; i < argc; i++)
 		printf("%s ", argv[i]);
 	putc('\n');
 }
@@ -251,12 +279,12 @@ struct shell_command shell_callback[] = {
 	{"echo", 	2, 			echo},
 	{"set", 	3, 			set},
 	{"help", 	1, 			help},
-	{"vars",	1,			vars}
+	{"vars",	1,			set}
 };
 
 void help(char** argv, int argc)
 {
-	for (int i = 0; i<sizeof(shell_callback)/sizeof(struct shell_command); i++)
+	for (int i = 0; i < sizeof(shell_callback) / sizeof(struct shell_command); i++)
 		printf("%s ", shell_callback[i].command);
 	putc('\n');
 }
@@ -266,7 +294,7 @@ void shell_execute(char** argv, int argc)
 	if (argc < 1)
 		return;
 
-	for (int i = 0; i<sizeof(shell_callback)/sizeof(struct shell_command); i++)
+	for (int i = 0; i < sizeof(shell_callback) / sizeof(struct shell_command); i++)
 	{
 		if (strcmp(argv[0], shell_callback[i].command) != 0)
 			continue;
@@ -297,7 +325,8 @@ void shell_main()
 		fgets(line, sizeof(line));
 
 		for (char* i = line; *i != 0; i++)
-			if (*i == '\n') *i = 0;
+			if (*i == '\n') 
+				*i = 0;
 
 		if (strcmp(line, "exit") == 0)
 			break;
@@ -307,11 +336,11 @@ void shell_main()
 
 		shell_execute(args, argc);
 
-		//cleanup
-		for (int i = 0; i<argc; i ++)
+		//clean-up
+
+		for (int i = 0; i < argc; i ++)
 			free(args[i]);
 		free(args);
 
 	} while(1);
-
 }

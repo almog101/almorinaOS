@@ -57,7 +57,21 @@ int strlen(char* str)
 {
 	int n = 0;
 	while (*(str))
+	{
 		n++;  
 		str++;
+	}
+	return n;
+}
+
+int count(char* string, char ch)
+{
+	int n = 0;
+	while (*(string))
+	{
+		if (*(string) == ch)
+			n++;  
+		string++;
+	}
 	return n;
 }

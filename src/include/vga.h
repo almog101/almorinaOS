@@ -5,6 +5,19 @@
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
 
+typedef enum Color16 color16_t;
+
+typedef struct 
+{
+	uint8_t character;
+	uint8_t color;
+} screen_cell_t;
+
+typedef struct
+{
+	uint8_t x, y;
+} cursor_t;
+
 enum Color16
 {
 	BLACK,
@@ -24,19 +37,6 @@ enum Color16
     YELLOW,
     WHITE,
 };
-
-typedef enum Color16 color16_t;
-
-typedef struct 
-{
-	uint8_t character;
-	uint8_t color;
-} screen_cell_t;
-
-typedef struct
-{
-	uint8_t x, y;
-} cursor_t;
 
 screen_cell_t* vga_getcell(uint8_t x, uint8_t y);
 

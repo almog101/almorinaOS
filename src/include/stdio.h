@@ -11,5 +11,6 @@ void puts(char *c);
 void cls();
 
 void fgets(char* dest, int n);
+void set_fg_color(int color);
 
 #endif

@@ -12,6 +12,7 @@
         "shell.h": "c",
         "mmap.h": "c",
         "interrupts.h": "c",
-        "vga.h": "c"
+        "vga.h": "c",
+        "common_defines.h": "c"
     }
 }

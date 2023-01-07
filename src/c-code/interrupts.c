@@ -3,6 +3,7 @@
 #include "../include/stdint.h"
 #include "../include/io.h"
 #include "../include/keyboard.h"
+#include "../include/vga.h"
 
 /*
 for now, prints a warning message about the page fault
@@ -11,7 +12,8 @@ for their own safaty *safisfied emoji
 */
 void __attribute__ ((interrupt)) page_fault_handler(struct interrupt_frame* frame)
 {
-    printf("Page Fault detected :[\n");
+    set_fg_color(WHITE);
+    printf("ERROR: Page Fault detected :[\n");
 
     while(true);
 }
@@ -23,7 +25,8 @@ but the message warns anout the devision by zero
 */
 void __attribute__ ((interrupt)) zero_devision_handler(struct interrupt_frame* frame)
 {
-    printf("You cannot devide by zero, silly :P\n\n");
+    set_fg_color(WHITE);
+    printf("ERROR: You cannot devide by zero, silly :P\n\n");
     
     while(true);
 }

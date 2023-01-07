@@ -7,7 +7,7 @@
 #include "keyboard.h"
 
 static color16_t bg_color = BLACK;
-static color16_t fg_color = LIGHTRED;
+static color16_t fg_color = LIGHTGREY;
 
 void scroll(cursor_t* curr)
 {
@@ -25,6 +25,11 @@ void scroll(cursor_t* curr)
 		curr->y = SCREEN_HEIGHT-1;
 		curr->x =0;
 	}
+}
+
+void set_fg_color(int color)
+{
+	fg_color = color;
 }
 
 void putc(char c)

@@ -17,7 +17,8 @@ void kernel_main(unsigned long magic, unsigned long addr)
 {
 	prepare_interrupts();
 	cls();
-	printf("Welcome to\n%s", ascii_data);
+
+	print_greetings();
 
 	/* Make sure the magic number matches for memory mapping*/
 	if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {

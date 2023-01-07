@@ -25,7 +25,7 @@ struct shell_command
 	SHELL_COMMAND_CALLBACK callback;
 };
 
-void shell_execute(char** argv, int argc);
+void print_greetings();
 void shell_main();
 
 #endif

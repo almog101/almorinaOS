@@ -15,10 +15,13 @@ char keyboard_scancode_to_keycode(uint8_t scancode)
 
 static char curr_ch = 0;
 static bool is_uppercase = false, is_shift = false;
+static int line_len = 1;
 
 void keyboard_handler(uint8_t scancode)
 {
   char ascii = keyboard_scancode_to_keycode(scancode);
+  //if((int)ascii != 0)
+  //  printf("[%d]", (int)ascii);
 
   if(ascii == CAPS_LOCK)
   {
@@ -32,6 +35,12 @@ void keyboard_handler(uint8_t scancode)
     return;
   }
 
+  if(ascii == '\n')
+    line_len = 1;
+
+  if(ascii != '\n' && ascii != '\b' && (int)ascii != 0)
+    line_len++;
+
   if((is_uppercase || is_shift) && (ascii >= 'a') && (ascii <= 'z'))
   {
     ascii -= 32;
@@ -44,20 +53,24 @@ void keyboard_handler(uint8_t scancode)
     is_shift = false;
   }
 
-  putc(ascii);
+  if(ascii == '\b')
+  {
+    line_len--;
+    if(line_len < 0)
+      line_len = 0;
+  }
+
+  if(line_len > 0)
+    putc(ascii);
 
   curr_ch = ascii;
 }
 
 char keyboard_getch()
 {
-  if(curr_ch == '\n')
-  {
-    curr_ch = 0;
-    return '\n';
-  }
-
-	return curr_ch;
+  char temp = curr_ch;
+  curr_ch = 0;
+	return temp;
 }
 
 // https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html
@@ -69,13 +82,21 @@ static unsigned char scancodes_table[128] =
   '\n',
   0,
   'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 
-  '`',   
+  '`',
   LEFT_SHIFT,
   '\\', 
   'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', RIGHT_SHIFT,
   '*',
   0, ' ',
   CAPS_LOCK,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0,
+  0,
+  0, 0, 0,
+  0,
+  0, 0, 0, 0,
+  0, 0, 0,
+  0, 0
 };
 
 static unsigned char shift_symbols_table[59] =

@@ -310,6 +310,7 @@ struct shell_command shell_callback[] = {
 
 void help(char** argv, int argc)
 {
+	set_fg_color(DARKGREY);
 	for (int i = 0; i < sizeof(shell_callback) / sizeof(struct shell_command); i++)
 		printf("%s ", shell_callback[i].command);
 	putc('\n');
@@ -370,8 +371,6 @@ void shell_main()
 		for (int i = 0; i < argc; i ++)
 			free(args[i]);
 		free(args);
-
-		int a = 3 / 0;
 
 	} while(1);
 }

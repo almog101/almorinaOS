@@ -164,16 +164,19 @@ void printf(const char* format, ...)
 
 void fgets(char* dest, int n)
 {
-	char temp = keyboard_getch(), ch = temp;
+	char ch = keyboard_getch();
 	int i = 0;
 
 	do
 	{
 		ch = keyboard_getch();
-		if (ch != temp && ch)
+		
+		if (ch)
 		{
-			temp = ch;
-			dest[i++] = ch;
+			if(ch == '\b')
+				i--;
+			else
+				dest[i++] = ch;
 		}
 	} while(i < n && ch != NEWLINE_CHAR);
 }

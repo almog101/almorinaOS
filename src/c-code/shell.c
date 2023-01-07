@@ -150,14 +150,6 @@ char *shell_combine_strings(char **str_array, uint64_t size) {
   return combined_str;
 }
 
-int count_arguments(char* line)
-{
-	if(count(line, '\'') == 2 || count(line, '"') == 2)
-		return 2;
-
-	return count(line, ' ') + 1;
-}
-
 /* this function splits the command into its arguments 
  * and returns the number of them */
 int shell_parse(const char* line, char*** argv)
@@ -166,56 +158,25 @@ int shell_parse(const char* line, char*** argv)
 	char* start = line;
 	char* end = line;
 
-    int arg_count = count_arguments(line);
+    int arg_count = count(line, ' ') + 1;
     char** args = (char**)malloc(sizeof(char*) * (arg_count));
 
-	if(count(line, '\'') == 2 || count(line, '"') == 2)
+	for (int i = 0; i < arg_count; i++)
 	{
+		// find the end of the argumnet
 		end = strchr(start, ' ');
 		if (end == 0)
 			end = line + size;
 
+		// copy the argument into new string
 		char* arg = malloc(end-start + 1);
 		memcpy(arg, start, end-start);
 		arg[end-start] = 0;
 		
-		args[0] = (char*)malloc(sizeof(char) * (end-start));
-		args[0] = arg;
+		args[i] = (char*)malloc(sizeof(char) * (end-start));
+		args[i] = arg;
 
-		free(arg);
 		start = end + 1;
-		end = line + size;
-
-		arg = malloc(end-start + 1);
-		memcpy(arg, start, end-start);
-		arg[end-start] = 0;
-		
-		args[1] = (char*)malloc(sizeof(char) * (end-start));
-		args[1] = arg;
-
-		free(arg);
-	}
-
-	else
-	{
-		for (int i = 0; i < arg_count; i++)
-		{
-			// find the end of the argumnet
-			end = strchr(start, ' ');
-			if (end == 0)
-				end = line + size;
-
-			// copy the argument into new string
-			char* arg = malloc(end-start + 1);
-			memcpy(arg, start, end-start);
-			arg[end-start] = 0;
-			
-			args[i] = (char*)malloc(sizeof(char) * (end-start));
-			args[i] = arg;
-
-			free(arg);
-			start = end + 1;
-		}
 	}
 
     *argv = args;

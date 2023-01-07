@@ -107,6 +107,9 @@ int shell_eval_math_exp(const char* expression)
 		case '*':
 			n = nums[index] * nums[index+1];
 			break;
+		default:
+			n = nums[index];
+			break;
 		}
 
 		for (int i = index+1; i<count; i++)
@@ -192,8 +195,10 @@ void echo(char** argv, int argc)
 
 void set_variable(shell_list_t* node, const char* name, const char* data)
 {
-	node->name = malloc(strlen(name));
+	int name_len = strlen(name);
+	node->name = malloc(name_len);
 	strcpy(node->name, name);
+	node->name[name_len] = 0;
 
 	if (is_exp(data))
 	{
@@ -229,6 +234,8 @@ void set(char** argv, int argc)
 	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
 	set_variable(node, argv[1], data);
+
+	printf("[%s]\n", node[0].name);
 	
     if(shell_variables == NULL) 
     	shell_variables = node;
@@ -266,7 +273,7 @@ struct shell_command shell_callback[] = {
 	{"echo", 	2, 			echo},
 	{"set", 	3, 			set},
 	{"help", 	1, 			help},
-	{"vars",	1,			set}
+	{"vars",	1,			vars}
 };
 
 void help(char** argv, int argc)

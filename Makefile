@@ -7,6 +7,15 @@ ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
 CC=x86_64-linux-gnu-gcc
 LD=x86_64-linux-gnu-ld
 
+
+CC_EXISTS := $(shell command -v $(CC) 2> /dev/null)
+
+all:
+ifndef CC_EXISTS # x86_64-linux-gnu-gcc isn't installed
+CC=x86_64-elf-gcc
+LD=x86_64-elf-ld
+endif
+
 all: build
 
 create-bin:
@@ -18,10 +27,10 @@ build: create-bin $(ASM_OBJS) $(C_OBJS)
 	grub-mkrescue -o bin/kernel.iso iso
 
 bin/interrupts.o: src/c-code/interrupts.c
-	x86_64-linux-gnu-gcc -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
+	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
 
 bin/%.o: src/%.c
-	x86_64-linux-gnu-gcc -c -ffreestanding $< -o $@ -I./src/include
+	$(CC) -c -ffreestanding $< -o $@ -I./src/include
 
 build-debug: build create-debug-info
 

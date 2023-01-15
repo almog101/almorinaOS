@@ -1,7 +1,16 @@
+#include "mmap.h"
 #include "heap.h"
 #include "stdbool.h"
 
 static memory_segment_t *first_free_memory_seg;
+
+int initialize_memory(unsigned long magic, unsigned long addr)
+{
+	extract_mmap(addr);
+	multiboot_memory_map_t* ent = get_mmap_entery(0);
+	initialize_heap(ent->addr, ent->len);
+	printf("Heap initialized. address: 0x%x, length: 0x%x\n", ent->addr, ent->len);
+}
 
 void initialize_heap(uint64_t addr, uint64_t size)
 {

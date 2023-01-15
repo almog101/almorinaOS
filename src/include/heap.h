@@ -21,4 +21,5 @@ extern void* malloc(uint64_t size);
 void free(void* address);
 void combine_segments(memory_segment_t *first_seg, memory_segment_t *second_seg);
 
+int initialize_memory(unsigned long magic, unsigned long addr);
 #endif

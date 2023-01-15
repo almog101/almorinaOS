@@ -187,7 +187,9 @@ start:
 	;move the stack location to stack register
 	mov esp, stack_top
 
-	;check compatibility of long mode and computer's processor
+	push eax
+	push ebx
+
 	call detect_multiboot
 	call detect_cpuid
 	call detect_long_mode
@@ -198,7 +200,11 @@ start:
 
 	;load the gdt to its register
 	lgdt [gdt64.pointer]
-	;load gdt64.code to cs [which cannot be done by mov] by far jump
+
+popy:
+	pop ebx
+	pop eax
+
 	jmp gdt64.code_segment:long_mode_start
 
 	hlt
@@ -212,8 +218,12 @@ section .text
 ;-----------------------------------
 
 long_mode_start:
-    ;load null into all data segment registers to avoid future problems
-    mov ax, 0
+	
+	mov rdi, rax
+	mov rsi, rbx
+
+    ;load null into all data segment registers
+	mov ax, 0
     mov ss, ax
     mov ds, ax
     mov es, ax

@@ -4,8 +4,17 @@ C_OBJS := $(patsubst src/c-code/%.c, bin/%.o,$(C_SRC))
 ASM_SRC := $(wildcard src/assembly/*.asm)
 ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
 
+CC=x86_64-linux-gnu-gcc
+LD=x86_64-linux-gnu-ld
+
+
+CC_EXISTS := $(shell command -v $(CC) 2> /dev/null)
+
+all:
+ifndef CC_EXISTS # x86_64-linux-gnu-gcc isn't installed
 CC=x86_64-elf-gcc
 LD=x86_64-elf-ld
+endif
 
 all: build
 
@@ -16,6 +25,12 @@ build: create-bin $(ASM_OBJS) $(C_OBJS)
 	$(LD) -n -o bin/kernel.bin -T linker.ld  $(C_OBJS) $(ASM_OBJS)
 	cp bin/kernel.bin iso/boot/kernel.bin
 	grub-mkrescue -o bin/kernel.iso iso
+
+bin/interrupts.o: src/c-code/interrupts.c
+	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@ -I./src/include
+
+bin/%.o: src/%.c
+	$(CC) -c -ffreestanding $< -o $@ -I./src/include
 
 build-debug: build create-debug-info
 
@@ -38,12 +53,10 @@ run-gdb:
 
 clean:
 	rm -rf bin iso/boot/kernel.bin
+	rm -f shell
 
 docker-create:
 	docker build --network=host -t almorina-builder .  
 docker-build:
 	docker run -v $(shell pwd):/mnt -w /mnt -it almorina-builder make
 	sudo chmod -R g+w bin/kernel.iso bin/*.o
-	
-
-

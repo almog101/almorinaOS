@@ -1,0 +1,12 @@
+...
+
+.bss:
+    block starting symbol
+    portion of assembly code that contains statically allocated variable that is yet to be assigned a value.
+    code:
+        . = ALIGN(4096);
+            allocated 0x1000 bits of memory.
+
+.text:
+    aka code segment
+    area in memory that stores instruction codes

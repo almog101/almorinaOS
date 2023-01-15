@@ -5,6 +5,7 @@
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
 
+// values which represent all the colors
 enum Color16
 {
 	BLACK,
@@ -24,9 +25,9 @@ enum Color16
     YELLOW,
     WHITE,
 };
-
 typedef enum Color16 color16_t;
 
+// structure to represent a character on screen
 typedef struct 
 {
 	uint8_t character;

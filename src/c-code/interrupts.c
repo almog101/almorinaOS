@@ -1,4 +1,4 @@
-#include "include/interrupts.h"
+#include "interrupts.h"
 
 /*
 for now, prints a warning message about the page fault

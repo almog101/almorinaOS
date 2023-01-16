@@ -24,7 +24,7 @@ typedef struct
 
 typedef struct
 {
-    enum INODE_TYPE		mode;		/* File mode */
+    uint8_t			mode;		/* File mode */
     uint32_t			size;		/* Size in bytes */
     uint32_t			atime;		/* Access time */
     uint32_t			ctime;		/* Creation time */
@@ -32,4 +32,5 @@ typedef struct
     uint32_t			block[15];	/* Pointers to blocks */
 } fs_inode_t;
 
-void* initialize_ramfs(int inodes_count, int blocks_count);
+void* fs_initialize(int inodes_count, int blocks_count);
+fs_inode_t* fs_create_inode(fs_superblock_t* device);

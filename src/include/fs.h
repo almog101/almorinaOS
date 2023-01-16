@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "bitset.h"
 
 #define BLOCK_SIZE 4096
 
@@ -16,6 +17,8 @@ typedef struct
 	uint32_t	first_inode;		/* First inode */
 	uint32_t	first_data_block;	/* First Data Block */
 	uint32_t	block_size;		/* Block size */
+	bitset_t	inodes_bitset;		/* Inodes Bitset */
+	bitset_t	blocks_bitset;		/* Blocks Bitset */
 } fs_superblock_t;
 
 

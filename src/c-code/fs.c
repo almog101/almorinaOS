@@ -1,5 +1,6 @@
 #include "fs.h"
 #include "bitset.h"
+#include <stdint.h>
 
 void* fs_initialize(int inodes_count, int blocks_count)
 {
@@ -18,7 +19,7 @@ void* fs_initialize(int inodes_count, int blocks_count)
 	return superblock;
 }
 
-fs_inode_t* fs_create_inode(fs_superblock_t* device)
+fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type)
 {
 	int i = 0;
 	for (i = 0; i<device->inodes_count; i++)
@@ -29,6 +30,9 @@ fs_inode_t* fs_create_inode(fs_superblock_t* device)
 		return 0;
 
 	BITSET_SETBIT(device->inodes_bitset, i, 1);
+	fs_inode_t* inode = &((fs_inode_t*)device->first_inode)[i];
+	*inode = (fs_inode_t){0};
+	inode->mode = type;
 
-	return &((fs_inode_t*)device->first_inode)[i];
+	return inode;
 }

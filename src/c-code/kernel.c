@@ -34,10 +34,10 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	free(str);
 	
 	fs_superblock_t* device = fs_initialize(100, 100);
-	fs_inode_t* inode =  fs_create_inode(device);
+	fs_inode_t* inode =  fs_create_inode(device, INODE_TYPE_DIR);
 	printf("%d\n", inode);
 
-	fs_inode_t* inode2 =  fs_create_inode(device);
+	fs_inode_t* inode2 =  fs_create_inode(device, INODE_TYPE_FILE);
 	printf("%d\n", inode2);
 	free(device);
 }

@@ -33,4 +33,4 @@ typedef struct
 } fs_inode_t;
 
 void* fs_initialize(int inodes_count, int blocks_count);
-fs_inode_t* fs_create_inode(fs_superblock_t* device);
+fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);

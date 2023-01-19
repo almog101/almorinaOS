@@ -10,6 +10,8 @@ enum INODE_TYPE {
 	INODE_TYPE_LINK,
 };
 
+struct __attribute__ ((__packed__)) block { char data[BLOCK_SIZE]; } typedef block;
+
 typedef struct
 {
 	uint32_t	inodes_count;		/* Inodes count 	*/
@@ -28,15 +30,15 @@ typedef struct
     uint32_t	atime;		/* Access time 				*/
     uint32_t	ctime;		/* Creation time 			*/
     uint32_t 	mtime;		/* Modification time 		*/
-    uint32_t	block[15];	/* Pointers to blocks 		*/
+    block		blocks[15];	/* Pointers to blocks 		*/
 							/* 12 direct pointers		*/
-							/* + 3 indirect pointers	*/
+							/* +3 indirect pointers		*/
 } fs_inode_t;
 
 void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);
 
-void fs_add_block(fs_inode_t* inode, uint32_t block_pointer);
+void fs_add_block(fs_inode_t* inode, block block_content);
 
 /*
 super-block:
@@ -47,6 +49,7 @@ super-block:
 		list of blocks [that belong to 1 file/diractory]
 		blocks:
 			parts of a disc [memory]
+			are THE CONTENT
 		indirect blocks:
 			point to a block of block pointers [??]
 */

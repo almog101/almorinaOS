@@ -21,8 +21,18 @@ char *strcpy(char *dest, const char *src)
 {
     do
 	{
-      *dest++ = *src++;
-	}while (*src != 0);
+      	*dest++ = *src++;
+	} while (*src != 0);
+}
+
+char *strncpy(char *dest, const char *src, int size)
+{
+	int copied_size = 0;
+	do
+	{
+		copied_size++;
+      	*dest++ = *src++;
+	} while (*src != 0 && copied_size != size);
 }
 
 char *strchr(char *haystack, const char needle)
@@ -53,3 +63,13 @@ int atoi(char* str)
 	return n;
 }
 
+int strlen(char* str)
+{
+	int n = 0;
+	while (*(str))
+	{
+		n++;  
+		str++;
+	}
+	return n;
+}

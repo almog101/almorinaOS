@@ -1,6 +1,7 @@
 #include "fs.h"
 #include "bitset.h"
 #include <stdint.h>
+#include <string.h>
 
 void* fs_initialize(int inodes_count, int blocks_count)
 {
@@ -35,72 +36,41 @@ fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type)
 	fs_inode_t* inode = &((fs_inode_t*)device->first_inode)[i];
 	*inode = (fs_inode_t){0};
 	inode->mode = type;
-	inode->block[0] = NULL;
 
 	return inode;
 }
 
-bool ckeck_indirect_pointers(int i, uint32_t* pointer_to_blocks, uint32_t block_to_add)
+int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 {
-	if(i == NULL)
+	int i = 0, j = 0;
+	for (i = 0; i<device->blocks_count; i++)
 	{
-		pointer_to_blocks[i] = malloc(uint32_t * 15);
-		pointer_to_blocks[i][0] = block_to_add;
-		pointer_to_blocks[i + 1] = NULL;
-		pointer_to_blocks[i][1] = NULL;
-		return 1;
+		if (BITSET_READBIT(device->blocks_bitset, i) == 0)
+			break;
+	}
+	
+	if (i == device->blocks_count)
+		return NO_SPACE_LEFT;
+	
+	while((strlen(data) * sizeof(char)) > BLOCK_SIZE && i != device->blocks_count)
+	{
+
+		BITSET_SETBIT(device->blocks_bitset, i, 1); // set the bitset of used blocl to 1
+		char* block = &((char*)device->first_data_block)[i++]; // get the address of where to save the data
+		inode->blocks[j++] = block;
+		strncpy(block, data, (BLOCK_SIZE / sizeof(char))); // save the data to the block
+		data = &data[BLOCK_SIZE / sizeof(char)]; // shorten the string
+	}
+
+	if(i != device->blocks_count)
+	{
+		BITSET_SETBIT(device->blocks_bitset, i, 1);
+		char* block = &((char*)device->first_data_block)[i];
+		inode->blocks[j] = block;
+		strncpy(block, data, strlen(data));
 	}
 	else
-	{
-		for(int j = 0; j < 15; j++)
-		{
-			if(pointer_to_blocks[i][j] == NULL)
-			{
-				pointer_to_blocks[i][j] = block_to_add;
-				if((j + 1) != 15)
-					pointer_to_blocks[i][j + 1] = NULL;
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
+		return SAVED_DATA_PARTLY;
 
-void fill_blocks(uint32_t* pointer_to_blocks, uint32_t block_to_add)
-{
-	int i = 0;
-
-	for(i = 0; i < 12; i++)
-	{
-		if(pointer_to_blocks[i] == NULL)
-		{
-			pointer_to_blocks[i] = block_to_add;
-			pointer_to_blocks[i + 1] = NULL;
-			return;
-		}
-	}
-
-	if(ckeck_indirect_pointers(i, pointer_to_blocks, block_to_add))
-		return;
-
-	if(ckeck_indirect_pointers(++i, pointer_to_blocks, block_to_add))
-		return;
-
-	if(++i == NULL)
-	{
-		pointer_to_blocks[i] = malloc(uint32_t * 15);
-		pointer_to_blocks[i][0] = block_to_add;
-		pointer_to_blocks[i + 1] = NULL;
-		pointer_to_blocks[i][1] = NULL;
-		return;
-	}
-	else
-	{
-		fill_blocks(pointer_to_blocks[i], block_to_add);
-	}
-}
-
-void fs_add_block(fs_inode_t* inode, uint32_t block_pointer) /* probably should be uint32_t pointer [not sure]*/
-{
-	fill_blocks(&(inode->block[0]), block_pointer); // should check if works
+	return SAVED_DATA_SICCESSFULLY;
 }

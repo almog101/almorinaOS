@@ -3,14 +3,17 @@
 #include "bitset.h"
 
 #define BLOCK_SIZE 4096
+#define NULL 0x0000
+
+#define NO_SPACE_LEFT 0
+#define SAVED_DATA_PARTLY 1
+#define SAVED_DATA_SICCESSFULLY 2
 
 enum INODE_TYPE {
 	INODE_TYPE_FILE,
 	INODE_TYPE_DIR,
 	INODE_TYPE_LINK,
 };
-
-struct __attribute__ ((__packed__)) block { char data[BLOCK_SIZE]; } typedef block;
 
 typedef struct
 {
@@ -30,7 +33,7 @@ typedef struct
     uint32_t	atime;		/* Access time 				*/
     uint32_t	ctime;		/* Creation time 			*/
     uint32_t 	mtime;		/* Modification time 		*/
-    block		blocks[15];	/* Pointers to blocks 		*/
+    uint32_t	blocks[15];	/* Pointers to blocks 		*/
 							/* 12 direct pointers		*/
 							/* +3 indirect pointers		*/
 } fs_inode_t;
@@ -38,7 +41,8 @@ typedef struct
 void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);
 
-void fs_add_block(fs_inode_t* inode, block block_content);
+int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data);
+
 
 /*
 super-block:

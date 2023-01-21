@@ -23,6 +23,7 @@ void* fs_initialize(int inodes_count, int blocks_count)
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type)
 {
 	int i = 0;
+
 	for (i = 0; i<device->inodes_count; i++)
 	{
 		if (BITSET_READBIT(device->inodes_bitset, i) == 0)
@@ -43,6 +44,7 @@ fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type)
 int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 {
 	int i = 0, j = 0;
+
 	for (i = 0; i<device->blocks_count; i++)
 	{
 		if (BITSET_READBIT(device->blocks_bitset, i) == 0)
@@ -52,14 +54,17 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 	if (i == device->blocks_count)
 		return NO_SPACE_LEFT;
 	
-	while((strlen(data) * sizeof(char)) > BLOCK_SIZE && i != device->blocks_count)
+	
+	while(i != device->blocks_count && (strlen(data) * sizeof(char)) > BLOCK_SIZE)
 	{
-
-		BITSET_SETBIT(device->blocks_bitset, i, 1); // set the bitset of used blocl to 1
+		BITSET_SETBIT(device->blocks_bitset, i, 1); // set the bitset of used block to 1
 		char* block = &((char*)device->first_data_block)[i++]; // get the address of where to save the data
 		inode->blocks[j++] = block;
 		strncpy(block, data, (BLOCK_SIZE / sizeof(char))); // save the data to the block
 		data = &data[BLOCK_SIZE / sizeof(char)]; // shorten the string
+
+		while(i != device->blocks_count && BITSET_READBIT(device->blocks_bitset, i) != 0) // pass the bits that are not available
+			i++;
 	}
 
 	if(i != device->blocks_count)
@@ -73,4 +78,22 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 		return SAVED_DATA_PARTLY;
 
 	return SAVED_DATA_SICCESSFULLY;
+}
+
+int fs_change_block(fs_superblock_t* device, fs_inode_t* inode, char* new_data)
+{
+	int i = 0, block_index = 0;
+
+	for(i = 0; i < 15; i++) // clear all the blocks of the inode in the device and in the node
+	{
+		if(inode->blocks[i] == 0)
+			break;
+		
+		block_index = (&(inode->blocks[i]) - &(inode->blocks[0])) / BLOCK_SIZE;
+		BITSET_SETBIT(device->blocks_bitset, block_index, 0);
+		clear_str(inode->blocks[i]);
+		inode->blocks[i] = 0;
+	}
+
+	return fs_add_block(device, inode, new_data);
 }

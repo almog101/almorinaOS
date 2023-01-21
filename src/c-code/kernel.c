@@ -35,11 +35,15 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	
 	fs_superblock_t* device = fs_initialize(100, 100);
 	fs_inode_t* inode =  fs_create_inode(device, INODE_TYPE_DIR);
-	printf("%d\n", inode->mode);
+	printf("inode mode: %d\n", inode->mode);
 
 	char* some_str = "help me";
 	int result = fs_add_block(device, inode, some_str);
-	printf("%d: %s\n", result, inode->blocks[0]);
+	printf("result: %d\ninode block[0]: %s\n", result, inode->blocks[0]);
+
+	char* new_str = "please, I plead";
+	result = fs_change_block(device, inode, new_str);
+	printf("result: %d\ninode block[0]: %s\n", result, inode->blocks[0]);
 }
 
 void prepare_interrupts()

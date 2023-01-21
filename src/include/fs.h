@@ -3,7 +3,6 @@
 #include "bitset.h"
 
 #define BLOCK_SIZE 4096
-#define NULL 0x0000
 
 #define NO_SPACE_LEFT 0
 #define SAVED_DATA_PARTLY 1
@@ -42,7 +41,7 @@ void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);
 
 int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data);
-
+int fs_change_block(fs_superblock_t* device, fs_inode_t* inode, char* new_data);
 
 /*
 super-block:

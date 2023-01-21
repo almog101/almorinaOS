@@ -73,3 +73,11 @@ int strlen(char* str)
 	}
 	return n;
 }
+
+void clear_str(char* str)
+{
+	while (*(str))
+	{
+		*str++ = 0;
+	}
+}

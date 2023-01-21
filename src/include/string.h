@@ -13,5 +13,7 @@ int strcmp(const char *str1, const char *str2);
 int atoi(char* str);
 int strlen(char* str);
 
+void clear_str(char* str);
+
 #endif // STRING_H
 

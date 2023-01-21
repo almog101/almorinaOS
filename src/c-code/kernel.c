@@ -41,7 +41,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	int result = fs_add_block(device, inode, some_str);
 	printf("result: %d\ninode block[0]: %s\n", result, inode->blocks[0]);
 
-	char* new_str = "please, I plead";
+	char* new_str = "please";
 	result = fs_change_block(device, inode, new_str);
 	printf("result: %d\ninode block[0]: %s\n", result, inode->blocks[0]);
 }

@@ -90,9 +90,10 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 	/*
 	check if:
 		- the device ran out of available blocks
-		- the data's size is biget than one block's size
+		- the data's size is biger than one block's size
+		- the inode ran out of available pointers to blocks
 	*/
-	while(i != device->blocks_count && (strlen(data) * sizeof(char)) > BLOCK_SIZE)
+	while(i != device->blocks_count && (strlen(data) * sizeof(char)) > BLOCK_SIZE && j < NUM_OF_BLOCKS_IN_INODE)
 	{
 		/*
 		the following lines:
@@ -113,8 +114,8 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 	}
 
 	// at this point the size of data is smaller than the size of 1 block
-	// so we make sure the device did not run out of available blocks and we save the data
-	if(i != device->blocks_count)
+	// so we make sure the device & the inode did not run out of available blocks and we save the data
+	if(i != device->blocks_count && j < NUM_OF_BLOCKS_IN_INODE)
 	{
 		BITSET_SETBIT(device->blocks_bitset, i, 1);
 		char* block = &((char*)device->first_data_block)[i];
@@ -144,7 +145,7 @@ int fs_change_block(fs_superblock_t* device, fs_inode_t* inode, char* new_data)
 	int i = 0, block_index = 0;
 
 	// go over all the blocks in the inode
-	for(i = 0; i < 15; i++)
+	for(i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
 	{
 		// check if the block is empty
 		if(inode->blocks[i] == 0)

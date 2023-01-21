@@ -3,6 +3,7 @@
 #include "bitset.h"
 
 #define BLOCK_SIZE 4096
+#define NUM_OF_BLOCKS_IN_INODE 15
 
 #define NO_SPACE_LEFT 0
 #define SAVED_DATA_PARTLY 1
@@ -32,27 +33,13 @@ typedef struct
     uint32_t	atime;		/* Access time 				*/
     uint32_t	ctime;		/* Creation time 			*/
     uint32_t 	mtime;		/* Modification time 		*/
-    uint32_t	blocks[15];	/* Pointers to blocks 		*/
+    uint32_t	blocks[NUM_OF_BLOCKS_IN_INODE];	
+							/* Pointers to blocks 		*/
 							/* 12 direct pointers		*/
 							/* +3 indirect pointers		*/
 } fs_inode_t;
 
 void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);
-
 int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data);
 int fs_change_block(fs_superblock_t* device, fs_inode_t* inode, char* new_data);
-
-/*
-super-block:
-	list of inodes
-	inode:
-		metadata:
-			general information about a file/directory
-		list of blocks [that belong to 1 file/diractory]
-		blocks:
-			parts of a disc [memory]
-			are THE CONTENT
-		indirect blocks:
-			point to a block of block pointers [??]
-*/

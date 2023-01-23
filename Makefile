@@ -51,6 +51,3 @@ docker-create:
 docker-build:
 	docker run -v $(shell pwd):/mnt -w /mnt -it almorina-builder make
 	sudo chmod -R g+w bin/kernel.iso bin/*.o
-	
-
-

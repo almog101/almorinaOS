@@ -142,7 +142,7 @@ char *shell_combine_strings(char **str_array, uint64_t size) {
   uint64_t pos = 0;
   for (uint64_t i = 0; i < size; i++) {
     uint64_t str_len = strlen(str_array[i]);
-    memcpy(combined_str + pos, str_array[i], str_len);
+    strncpy(combined_str + pos, str_array[i], str_len);
 	combined_str[pos+str_len] = ' ';
     pos += str_len+1;
   }
@@ -306,6 +306,43 @@ void mkdir(char** argv, int argc)
 	free(name);
 }
 
+void edit(char** argv, int argc)
+{
+	char* filename = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = ramfs_root;
+	fs_dir_entry* file = -1;
+
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j= 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if (strcmp(ent->name, filename) == 0)
+			{
+				file = ent;
+				goto check;
+			}
+		}
+	}
+
+	check:
+	if (file == -1)
+	{
+		puts("file doesn't exist\n");
+		goto end;
+	}
+
+	puts("Enter new file contents: ");
+	char data[100] = {0};
+	fgets(data, sizeof(data));
+	fs_inode_write_data(ramfs_device, file->inode, data);
+
+	end: free(filename);
+}
+
 void help(char** argv, int argc);
 
 struct shell_command shell_callback[] = {
@@ -317,6 +354,7 @@ struct shell_command shell_callback[] = {
 	{"touch",	2,			touch},
 	{"mkdir",	2,			mkdir},
 	{"tree",	1,			tree},
+	{"edit",	2,			edit},
 };
 
 void help(char** argv, int argc)

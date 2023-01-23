@@ -59,7 +59,7 @@ void vga_movcurr()
 {
     uint16_t currpos = cursor.y * 80 + cursor.x;
     outb(0x3D4, 14);                // Tell the VGA board we are setting the high cursor byte.
-    outb(0x3D5, currpos & 0xF0);	// Send the high cursor byte.
+    outb(0x3D5, currpos & 0xF0); 	// Send the high cursor byte.
     outb(0x3D4, 15);                // Tell the VGA board we are setting the low cursor byte.
     outb(0x3D5, currpos & 0x0F);    // Send the low cursor byte.
 }

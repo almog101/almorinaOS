@@ -74,10 +74,14 @@ int strlen(char* str)
 	return n;
 }
 
-void clear_str(char* str)
+int count(char* string, char ch)
 {
-	while (*(str))
+	int n = 0;
+	while (*(string))
 	{
-		*str++ = 0;
+		if (*(string) == ch)
+			n++;  
+		string++;
 	}
+	return n;
 }

@@ -85,6 +85,38 @@ void* malloc(uint64_t size)
 	return 0; // no free space is left / heap is full
 }
 
+/*
+when a large block of memory is tried to be allocated [my English is great, I know]
+our malloc function skips over small memory blocks that we might want to use later
+so this function is needed to combine those small blocks of free memory
+with another free blocks of memory if they are right next to them
+*/
+void combine_segments(memory_segment_t *f, memory_segment_t *s)
+{
+	if((f == 0) || (s == 0))
+		return;
+
+	if(f < s)
+	{
+		f->len += s->len + sizeof(memory_segment_t);
+		f->next_seg = s->next_seg;
+		f->next_free_seg = s->next_free_seg;
+		s->next_seg->prev_seg = f;
+		s->next_seg->prev_free_seg = f;
+		s->next_free_seg->prev_free_seg = f;
+	}
+
+	else
+	{
+		s->len += f->len + sizeof(memory_segment_t);
+		s->next_seg = f->next_seg;
+		s->next_free_seg = f->next_free_seg;
+		f->next_seg->prev_seg = s;
+		f->next_seg->prev_free_seg = s;
+		f->next_free_seg->prev_free_seg = s;
+	}
+}
+
 void free(void* address)
 {
 	// get the correct address of the memory segment to free
@@ -118,37 +150,5 @@ void free(void* address)
 		curr_memory_seg->prev_seg->next_seg = curr_memory_seg;
 		if (curr_memory_seg->prev_seg->free)
 			combine_segments(curr_memory_seg, curr_memory_seg->prev_seg);
-	}
-}
-
-/*
-when a large block of memory is tried to be allocated [my English is great, I know]
-our malloc function skips over small memory blocks that we might want to use later
-so this function is needed to combine those small blocks of free memory
-with another free blocks of memory if they are right next to them
-*/
-void  combine_segments(memory_segment_t *f, memory_segment_t *s)
-{
-	if((f == 0) || (s == 0))
-		return;
-
-	if(f < s)
-	{
-		f->len += s->len + sizeof(memory_segment_t);
-		f->next_seg = s->next_seg;
-		f->next_free_seg = s->next_free_seg;
-		s->next_seg->prev_seg = f;
-		s->next_seg->prev_free_seg = f;
-		s->next_free_seg->prev_free_seg = f;
-	}
-
-	else
-	{
-		s->len += f->len + sizeof(memory_segment_t);
-		s->next_seg = f->next_seg;
-		s->next_free_seg = f->next_free_seg;
-		f->next_seg->prev_seg = s;
-		f->next_seg->prev_free_seg = s;
-		f->next_free_seg->prev_free_seg = s;
 	}
 }

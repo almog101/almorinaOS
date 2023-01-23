@@ -12,8 +12,7 @@ char *strchr(char *haystack, const char needle);
 int strcmp(const char *str1, const char *str2);
 int atoi(char* str);
 int strlen(char* str);
-
-void clear_str(char* str);
+int count(char* string, char ch);
 
 #endif // STRING_H
 

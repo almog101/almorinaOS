@@ -7,7 +7,7 @@
 #include "keyboard.h"
 
 static color16_t bg_color = BLACK;
-static color16_t fg_color = LIGHTRED;
+static color16_t fg_color = LIGHTGREY;
 
 void scroll(cursor_t* curr)
 {
@@ -25,6 +25,11 @@ void scroll(cursor_t* curr)
 		curr->y = SCREEN_HEIGHT-1;
 		curr->x =0;
 	}
+}
+
+void set_fg_color(int color)
+{
+	fg_color = color;
 }
 
 void putc(char c)
@@ -159,15 +164,19 @@ void printf(const char* format, ...)
 
 void fgets(char* dest, int n)
 {
-	char temp = keyboard_getch(), ch =temp;
-	int i =0;
+	char ch = keyboard_getch();
+	int i = 0;
+
 	do
 	{
 		ch = keyboard_getch();
-		if (ch != temp && ch)
+		
+		if (ch)
 		{
-			temp = ch;
-			dest[i++] = ch;
+			if(ch == '\b')
+				i--;
+			else
+				dest[i++] = ch;
 		}
-	} while(i<n && ch != NEWLINE_CHAR);
+	} while(i < n && ch != NEWLINE_CHAR);
 }

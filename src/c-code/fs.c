@@ -104,7 +104,6 @@ INPUT:
 OUTPUT:
 - result of the attempt to save the given data
 */
-
 int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data)
 {
 	int size = strlen(data);
@@ -129,6 +128,41 @@ int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data)
 		if (size < BLOCK_SIZE)
 			break;
 		size -= BLOCK_SIZE;
+	}
+	inode->size = size;
+
+	return 0;
+}
+
+fs_inode_t* fs_dir_add_entry(fs_superblock_t* device, fs_inode_t* dir,  char* filename, uint8_t type)
+{
+	if (dir->mode != INODE_TYPE_DIR)
+		return;
+
+	int filename_size = strlen(filename);
+
+	// loops over all blocks, and dir entries abd finds
+	// a free entry
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			dir->blocks[i] = fs_create_block(device);
+
+		for (int j= 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if (strcmp(ent->name, filename) == 0)
+				return;
+
+			if ( ent->is_taken == 0 )
+			{
+				ent->is_taken = 1;
+				ent->inode = fs_create_inode(device, type);
+				strncpy(ent->name, filename, \
+				(filename_size < FS_MAX_FILENAME_SIZE) ? filename_size : FS_MAX_FILENAME_SIZE);
+				return ent->inode;
+			}
+		}
 	}
 
 	return 0;

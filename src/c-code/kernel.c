@@ -13,34 +13,59 @@ idt_register idt_r;
 extern idt_descriptor_entry _idt[256];
 
 void prepare_interrupts();
+fs_superblock_t* device;
+
+void tree(fs_inode_t* dir, int level)
+{
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j = 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if ( ent->is_taken == 1 )
+			{
+				for (int _ = 0; _<level; _++) puts("|---");
+				printf("%s -> %d\n", ent->name,  ent->inode);
+				if (ent->inode->mode == INODE_TYPE_DIR)
+					tree(ent->inode, level+1);
+			}
+		}
+	}
+}
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	prepare_interrupts();
 	initialize_memory(magic, addr);
-	fs_superblock_t* device = fs_initialize(100, 100);
+	device = fs_initialize(100, 100);
 
 	cls();
 	print_greetings();
 
 	fs_inode_t* root =  fs_create_inode(device, INODE_TYPE_DIR);
-	printf("inode mode: %d\n", root->mode);
-	fs_inode_write_data(device, root, "as01829731o319038173aklshdaklsjdagdsukqgweiuqeg");
-	fs_inode_write_data(device, root, "test hello world");
-	for (int i =0; i<15; i++)
-		printf("%d. %s\n",i, root->blocks[i]);
 
+	fs_dir_add_entry(device, root, "file1.txt", INODE_TYPE_FILE);
+	fs_dir_add_entry(device, root, "test.txt", INODE_TYPE_FILE);
+	
+	fs_inode_t* newdir = fs_dir_add_entry(device, root, "test", INODE_TYPE_DIR);
+	fs_dir_add_entry(device, newdir, "file1.txt", INODE_TYPE_FILE);
+	fs_dir_add_entry(device, root, "test.txt", INODE_TYPE_FILE);
+	
+	newdir = fs_dir_add_entry(device, newdir, "test", INODE_TYPE_DIR);
+	fs_dir_add_entry(device, newdir, "file1.txt", INODE_TYPE_FILE);
+	fs_dir_add_entry(device, root, "test.txt", INODE_TYPE_FILE);
+
+	newdir = fs_dir_add_entry(device, newdir, "test", INODE_TYPE_DIR);
+	fs_dir_add_entry(device, newdir, "file1.txt", INODE_TYPE_FILE);
+	fs_dir_add_entry(device, root, "test.txt", INODE_TYPE_FILE);
+	
+	tree(root, 0);
 	shell_main();
 }
 
-void fs_get_inode(fs_inode_t* root, char* filename)
-{
-}
-
-void touch(char* name)
-{
-	//fs_inode_t* inode =  fs_create_inode(device, INODE_TYPE_FILE);
-}
 
 void prepare_interrupts()
 {

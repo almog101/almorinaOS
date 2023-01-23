@@ -9,7 +9,7 @@
 #define SAVED_DATA_PARTLY 1
 #define SAVED_DATA_SICCESSFULLY 2
 
-#define FS_MAX_FILENAME_SIZE (128-(sizeof(int)))
+#define FS_MAX_FILENAME_SIZE (128-(sizeof(int)) - (sizeof(uint8_t)))
 
 enum INODE_TYPE {
 	INODE_TYPE_FILE,
@@ -42,11 +42,13 @@ typedef struct
 } fs_inode_t;
 
 typedef struct {
-	int inode;
+	fs_inode_t* inode;
 	char name[FS_MAX_FILENAME_SIZE];
+	uint8_t is_taken;
 } fs_dir_entry;
 
 void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);
 void* fs_create_block(fs_superblock_t* device);
 int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data);
+fs_inode_t* fs_dir_add_entry(fs_superblock_t* device, fs_inode_t* dir,  char* filename, uint8_t type);

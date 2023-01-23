@@ -25,16 +25,10 @@ void kernel_main(unsigned long magic, unsigned long addr)
 
 	fs_inode_t* root =  fs_create_inode(device, INODE_TYPE_DIR);
 	printf("inode mode: %d\n", root->mode);
-
-	/*
-	char* some_str = "help me";
-	int result = fs_add_block(device, root, some_str);
-	printf("result: %d %d\ninode block[0]: %s\n", result, root->size, root->blocks[0]); 
-
-	char* new_str = "please";
-	result = fs_change_block(device, root, new_str);
-	printf("result: %d %d\ninode block[0]: %s\n", result, root->size, root->blocks[0]);
-	*/
+	fs_inode_write_data(device, root, "as01829731o319038173aklshdaklsjdagdsukqgweiuqeg");
+	fs_inode_write_data(device, root, "test hello world");
+	for (int i =0; i<15; i++)
+		printf("%d. %s\n",i, root->blocks[i]);
 
 	shell_main();
 }

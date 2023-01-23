@@ -48,5 +48,5 @@ typedef struct {
 
 void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);
-int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data);
-int fs_change_block(fs_superblock_t* device, fs_inode_t* inode, char* new_data);
+void* fs_create_block(fs_superblock_t* device);
+int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data);

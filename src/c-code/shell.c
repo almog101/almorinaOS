@@ -1,3 +1,4 @@
+#include "fs.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdint.h"
@@ -265,6 +266,46 @@ void vars(char** argv, int argc)
 	}
 }
 
+void print_fs_tree(fs_inode_t* dir, int level)
+{
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j = 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if ( ent->is_taken == 1 )
+			{
+				for (int _ = 0; _<level; _++) puts("|---");
+				printf("%s -> %d\n", ent->name,  ent->inode);
+				if (ent->inode->mode == INODE_TYPE_DIR)
+					print_fs_tree(ent->inode, level+1);
+			}
+		}
+	}
+}
+
+void tree(char** argv, int argc)
+{
+	print_fs_tree(ramfs_root, 0);
+}
+
+void touch(char** argv, int argc)
+{
+	char* name = shell_combine_strings(argv+1, argc-1);
+	fs_dir_add_entry(ramfs_device, ramfs_root, name, INODE_TYPE_FILE);
+	free(name);
+}
+
+void mkdir(char** argv, int argc)
+{
+	char* name = shell_combine_strings(argv+1, argc-1);
+	fs_dir_add_entry(ramfs_device, ramfs_root, name, INODE_TYPE_DIR);
+	free(name);
+}
+
 void help(char** argv, int argc);
 
 struct shell_command shell_callback[] = {
@@ -272,7 +313,10 @@ struct shell_command shell_callback[] = {
 	{"echo", 	2, 			echo},
 	{"set", 	3, 			set},
 	{"help", 	1, 			help},
-	{"vars",	1,			vars}
+	{"vars",	1,			vars},
+	{"touch",	2,			touch},
+	{"mkdir",	2,			mkdir},
+	{"tree",	1,			tree},
 };
 
 void help(char** argv, int argc)
@@ -335,9 +379,9 @@ void shell_main()
 
 		//clean-up
 
-		for (int i = 0; i < argc; i ++)
-			free(args[i]);
-		free(args);
+		//for (int i = 0; i < argc; i ++)
+		//	free(args[i]);
+		//free(args);
 
 	} while(1);
 }

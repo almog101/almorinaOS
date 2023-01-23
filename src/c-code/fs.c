@@ -58,6 +58,9 @@ fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type)
 	*inode = (fs_inode_t){0};
 	inode->mode = type;
 
+	for (int i =0; i<sizeof(inode->blocks)/sizeof(inode->blocks[0]); i++)
+		inode->blocks[i] = 0;
+
 	return inode;
 }
 
@@ -93,7 +96,7 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 		- the data's size is biger than one block's size
 		- the inode ran out of available pointers to blocks
 	*/
-	while(i != device->blocks_count && (strlen(data) * sizeof(char)) > BLOCK_SIZE && j < NUM_OF_BLOCKS_IN_INODE)
+	while(i != device->blocks_count && strlen(data) > BLOCK_SIZE && j < NUM_OF_BLOCKS_IN_INODE)
 	{
 		/*
 		the following lines:
@@ -104,8 +107,8 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 		BITSET_SETBIT(device->blocks_bitset, i, 1); // set bitset to 1
 		char* block = &((char*)device->first_data_block)[i++]; // get address for saving the data
 		inode->blocks[j++] = block; // save the address
-		strncpy(block, data, (BLOCK_SIZE / sizeof(char))); // save the data [of 1 block size]
-		data = &data[BLOCK_SIZE / sizeof(char)]; // shorten the data [delete the data that was already saved]
+		strncpy(block, data, BLOCK_SIZE); // save the data [of 1 block size]
+		data = &data[BLOCK_SIZE]; // shorten the data [delete the data that was already saved]
 
 		// make sure the bitset of next block is available and if the device ran out of available blocks
 		// if not available, pass to the next block
@@ -121,6 +124,7 @@ int fs_add_block(fs_superblock_t* device, fs_inode_t* inode, char* data)
 		char* block = &((char*)device->first_data_block)[i];
 		inode->blocks[j] = block;
 		strncpy(block, data, strlen(data));
+		inode->size += strlen(data);
 	}
 	// notify that only part of the given data was saved and that the device ran out of available blocks
 	else
@@ -154,7 +158,7 @@ int fs_change_block(fs_superblock_t* device, fs_inode_t* inode, char* new_data)
 		// the following lines clear the data from the inode and from the device
 		block_index = (&(inode->blocks[i]) - &(inode->blocks[0])) / BLOCK_SIZE;
 		BITSET_SETBIT(device->blocks_bitset, block_index, 0);
-		clear_str(inode->blocks[i]);
+		memset((void*)inode->blocks[i], 0, BLOCK_SIZE);
 		inode->blocks[i] = 0;
 	}
 

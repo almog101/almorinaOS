@@ -9,6 +9,8 @@
 #define SAVED_DATA_PARTLY 1
 #define SAVED_DATA_SICCESSFULLY 2
 
+#define FS_MAX_FILENAME_SIZE (128-(sizeof(int)))
+
 enum INODE_TYPE {
 	INODE_TYPE_FILE,
 	INODE_TYPE_DIR,
@@ -38,6 +40,11 @@ typedef struct
 							/* 12 direct pointers		*/
 							/* +3 indirect pointers		*/
 } fs_inode_t;
+
+typedef struct {
+	int inode;
+	char name[FS_MAX_FILENAME_SIZE];
+} fs_dir_entry;
 
 void* fs_initialize(int inodes_count, int blocks_count);
 fs_inode_t* fs_create_inode(fs_superblock_t* device, uint8_t type);

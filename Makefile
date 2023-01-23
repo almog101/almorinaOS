@@ -11,7 +11,7 @@ LD=x86_64-linux-gnu-ld
 CC_EXISTS := $(shell command -v $(CC) 2> /dev/null)
 
 all:
-ifndef CC_EXISTS # x86_64-linux-gnu-gcc isn't installed
+ifdef CC_EXISTS # x86_64-linux-gnu-gcc isn't installed
 CC=x86_64-elf-gcc
 LD=x86_64-elf-ld
 endif

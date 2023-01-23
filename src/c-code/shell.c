@@ -2,7 +2,6 @@
 #include "string.h"
 #include "stdint.h"
 #include "stdbool.h"
-#include "memory.h"
 #include "shell.h"
 #include "heap.h"
 #include <vga.h>

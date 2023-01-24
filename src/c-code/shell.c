@@ -20,7 +20,7 @@ void print_greetings()
 	set_fg_color(PINK);
 	printf("%s", almorina_title_II);
 	set_fg_color(MAGENTA);
-	printf("%s", almorina_title_III);
+	printf("%s\n", almorina_title_III);
 	set_fg_color(DARKGREY);
 }
 
@@ -306,7 +306,7 @@ void mkdir(char** argv, int argc)
 	free(name);
 }
 
-void edit(char** argv, int argc)
+fs_dir_entry* file_exist(char** argv, int argc)
 {
 	char* filename = shell_combine_strings(argv+1, argc-1);
 	fs_inode_t* dir = ramfs_root;
@@ -332,15 +332,35 @@ void edit(char** argv, int argc)
 	if (file == -1)
 	{
 		puts("file doesn't exist\n");
-		goto end;
+		free(filename);
 	}
+
+	return file;
+}
+
+void edit(char** argv, int argc)
+{
+	fs_dir_entry* file = file_exist(argv, argc);
+
+	if (file == -1)
+		return;
 
 	puts("Enter new file contents: ");
 	char data[100] = {0};
 	fgets(data, sizeof(data));
 	fs_inode_write_data(ramfs_device, file->inode, data);
+}
 
-	end: free(filename);
+void cat(char** argv, int argc)
+{
+	fs_dir_entry* file = file_exist(argv, argc);
+
+	if (file == -1)
+		return;
+
+	char* data = fs_inode_get_data(ramfs_device, file->inode);
+	puts(data);
+	free(data);
 }
 
 void help(char** argv, int argc);
@@ -355,6 +375,7 @@ struct shell_command shell_callback[] = {
 	{"mkdir",	2,			mkdir},
 	{"tree",	1,			tree},
 	{"edit",	2,			edit},
+	{"cat",		2,			cat}
 };
 
 void help(char** argv, int argc)

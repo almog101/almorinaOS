@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 
+fs_superblock_t* ramfs_device;
+fs_inode_t* ramfs_root;
+
 /*
 initializes out file system with the given number if inodes & blocks
 INPUT:
@@ -110,7 +113,7 @@ int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data)
 	int block_index = 0;
 
 	// loop over blocks of inode
-	for (block_index = 0; block_index<NUM_OF_BLOCKS_IN_INODE; block_index++)
+	for (block_index = 0; block_index < NUM_OF_BLOCKS_IN_INODE; block_index++)
 	{
 		// if needed, allocate new block
 		if (inode->blocks[block_index] == 0)
@@ -132,6 +135,35 @@ int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data)
 	inode->size = size;
 
 	return 0;
+}
+
+#include <stdio.h>
+
+char* fs_inode_get_data(fs_superblock_t* device, fs_inode_t* inode)
+{
+	int block_index = 0;
+	char* data = 0;
+	int data_size = 0;
+
+	// loop over blocks of inode
+	for (block_index = 0; block_index < NUM_OF_BLOCKS_IN_INODE; block_index++)
+	{
+		if(inode->blocks[block_index] != 0)
+			data_size += strlen((char*)inode->blocks[block_index]);
+	}
+	data = (char*)malloc(data_size + 1);
+
+	// loop over blocks of inode
+	for (block_index = 0; block_index < NUM_OF_BLOCKS_IN_INODE; block_index++)
+	{
+		if(inode->blocks[block_index] != 0)
+		{
+			int block_ln = strlen((char*)inode->blocks[block_index]);
+			strncpy(data, inode->blocks[block_index], block_ln);
+		}
+	}
+
+	return data;
 }
 
 fs_inode_t* fs_dir_add_entry(fs_superblock_t* device, fs_inode_t* dir,  char* filename, uint8_t type)

@@ -15,7 +15,6 @@ extern idt_descriptor_entry _idt[256];
 void prepare_interrupts();
 fs_superblock_t* device;
 
-
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	prepare_interrupts();

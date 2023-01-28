@@ -2,6 +2,7 @@
 #include "bitset.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 fs_superblock_t* ramfs_device;
 fs_inode_t* ramfs_root;
@@ -137,7 +138,93 @@ int fs_inode_write_data(fs_superblock_t* device, fs_inode_t* inode, char* data)
 	return 0;
 }
 
-#include <stdio.h>
+fs_dir_entry* fs_get_entry_by_filename(fs_inode_t* dir, const char* filename)
+{
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j = 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if ( strcmp(ent->name, filename) == 0 )
+				return ent;
+		}
+	}
+	return 0;
+}
+
+fs_inode_t* fs_get_entry_dir(fs_superblock_t* device, fs_inode_t* dir, const char* path)
+{
+	char* filename_start = path;
+	char* filename_end = path;
+
+	if (path[0] == '/')
+	{
+		dir = ramfs_root;
+		filename_start++;
+		filename_end++;
+	}
+
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	fs_dir_entry* ent = 0;
+
+	while(*filename_end)
+	{
+		if (*filename_end == '/')
+		{
+			if (filename_end - filename_start > 1)
+			{
+				strncpy(filename, filename_start, filename_end-filename_start);
+				filename[filename_end-filename_start] = 0;
+
+				ent = fs_get_entry_by_filename(dir, filename);
+				if (ent && ent->inode->mode == INODE_TYPE_DIR)
+					dir = ent->inode;
+				else
+					return 0;
+			}
+
+			filename_start=filename_end+1;
+		}
+		filename_end++;
+	}
+
+	if (ent == 0)
+		return dir;
+	
+	return ent->inode;
+}
+
+char* fs_extract_filename_from_path(const char* path, int* len)
+{
+	// gets the pointer to the end of the filename
+	char* filename_end = path;
+	while(*(filename_end++)); 
+	while(*(--filename_end) == '/');
+
+	// gets the pointer to the end of the filename
+	char* filename_start = filename_end-1;
+	while(*(filename_start) && *(filename_start) != '/')
+		filename_start--;
+	filename_start++;
+
+	*len = filename_end-filename_start;
+	return filename_start;
+}
+
+fs_dir_entry* fs_get_entry(fs_superblock_t* device, fs_inode_t* dir, const char* path)
+{
+	fs_inode_t* parent_dir  = fs_get_entry_dir(device, dir, path);
+
+	int len;
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
+	filename[len] = 0;
+
+	return fs_get_entry_by_filename(parent_dir, filename);
+}
 
 char* fs_inode_get_data(fs_superblock_t* device, fs_inode_t* inode)
 {
@@ -169,7 +256,7 @@ char* fs_inode_get_data(fs_superblock_t* device, fs_inode_t* inode)
 fs_inode_t* fs_dir_add_entry(fs_superblock_t* device, fs_inode_t* dir,  char* filename, uint8_t type)
 {
 	if (dir->mode != INODE_TYPE_DIR)
-		return;
+		return 0;
 
 	int filename_size = strlen(filename);
 

@@ -15,13 +15,9 @@ extern shell_list_t* shell_variables = 0;
 void print_greetings()
 {
 	printf("Welcome to\n");
-	set_fg_color(LIGHTGREY);
 	printf("%s", almorina_title_I);
-	set_fg_color(PINK);
 	printf("%s", almorina_title_II);
-	set_fg_color(MAGENTA);
 	printf("%s\n", almorina_title_III);
-	set_fg_color(DARKGREY);
 }
 
 void strip_spaces(char* s)
@@ -294,16 +290,40 @@ void tree(char** argv, int argc)
 
 void touch(char** argv, int argc)
 {
-	char* name = shell_combine_strings(argv+1, argc-1);
-	fs_dir_add_entry(ramfs_device, ramfs_root, name, INODE_TYPE_FILE);
-	free(name);
+	char* path = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	if (dir == 0)
+	{
+		puts("path doesnt exist!\n");
+		return;
+	}
+
+	int len;
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
+	filename[len] = 0;
+
+	printf("new file [%s] in inode %d\n", filename, dir);
+	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_FILE);
 }
 
 void mkdir(char** argv, int argc)
 {
-	char* name = shell_combine_strings(argv+1, argc-1);
-	fs_dir_add_entry(ramfs_device, ramfs_root, name, INODE_TYPE_DIR);
-	free(name);
+	char* path = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	if (dir == 0)
+	{
+		puts("path doesnt exist!\n");
+		return;
+	}
+
+	int len;
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
+	filename[len] = 0;
+
+	printf("new dir [%s] in inode %d\n", filename, dir);
+	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_DIR);
 }
 
 fs_dir_entry* file_exist(char** argv, int argc)

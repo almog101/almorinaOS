@@ -12,8 +12,8 @@ CC_EXISTS := $(shell command -v $(CC) 2> /dev/null)
 
 all:
 ifdef CC_EXISTS # x86_64-linux-gnu-gcc isn't installed
-CC=x86_64-linux-gnu-gcc
-LD=x86_64-linux-gnu-ld
+CC=x86_64-elf-gcc
+LD=x86_64-elf-ld
 endif
 
 all: build

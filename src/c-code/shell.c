@@ -371,7 +371,7 @@ void edit(char** argv, int argc)
 	fs_inode_write_data(ramfs_device, file->inode, data);
 }
 
-void cat(char** argv, int argc)
+void cat(char** argv, int argc) // change
 {
 	fs_dir_entry* file = file_exist(argv, argc);
 
@@ -381,6 +381,34 @@ void cat(char** argv, int argc)
 	char* data = fs_inode_get_data(ramfs_device, file->inode);
 	puts(data);
 	free(data);
+}
+
+void ls(char** argv, int argc)
+{
+	char* path = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	if (dir == 0)
+	{
+		puts("path doesnt exist!\n");
+		return;
+	}
+
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j = 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if(ent->name[0] == 0)
+			{
+				i = NUM_OF_BLOCKS_IN_INODE;
+				break;
+			}
+			printf("%s\n", ent->name);
+		}
+	}
 }
 
 void help(char** argv, int argc);
@@ -395,7 +423,8 @@ struct shell_command shell_callback[] = {
 	{"mkdir",	2,			mkdir},
 	{"tree",	1,			tree},
 	{"edit",	2,			edit},
-	{"cat",		2,			cat}
+	{"cat",		2,			cat},
+	{"ls",		1,			ls}
 };
 
 void help(char** argv, int argc)

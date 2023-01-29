@@ -185,7 +185,14 @@ int shell_parse(const char* line, char*** argv)
 void echo(char** argv, int argc)
 {
 	for (int i = 1; i < argc; i++)
-		printf("%s ", argv[i]);
+	{
+		int len = strlen(argv[i]);
+		for(int j = 0; j < len; j++)
+		{
+			if(argv[i][j] != '\'' && argv[i][j] != '"')
+				putc(argv[i][j]);
+		}
+	}
 	putc('\n');
 }
 

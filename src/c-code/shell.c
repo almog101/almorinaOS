@@ -11,14 +11,19 @@ const char almorina_title_I[] = {0x20, 0x20, 0x5F, 0x5F, 0x5F, 0x20, 0x20, 0x5F,
 const char almorina_title_II[] = {0x2F, 0x20, 0x2F, 0x5F, 0x5C, 0x20, 0x5C, 0x20, 0x7C, 0x5F, 0x20, 0x5F, 0x5F, 0x20, 0x5F, 0x5F, 0x5F, 0x20, 0x20, 0x20, 0x5F, 0x5F, 0x5F, 0x20, 0x20, 0x5F, 0x20, 0x5F, 0x5F, 0x20, 0x5F, 0x20, 0x5F, 0x20, 0x5F, 0x5F, 0x20, 0x20, 0x20, 0x5F, 0x5F, 0x20, 0x5F, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x5C, 0x20, 0x60, 0x2D, 0x2D, 0x2E, 0x20, '\n', 0x7C, 0x20, 0x20, 0x5F, 0x20, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x27, 0x5F, 0x20, 0x60, 0x20, 0x5F, 0x20, 0x5C, 0x20, 0x2F, 0x20, 0x5F, 0x20, 0x5C, 0x7C, 0x20, 0x27, 0x5F, 0x5F, 0x7C, 0x20, 0x7C, 0x20, 0x27, 0x5F, 0x20, 0x5C, 0x20, 0x2F, 0x20, 0x5F, 0x60, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x60, 0x2D, 0x2D, 0x2E, 0x20, 0x5C, '\n', 0};
 const char almorina_title_III[] = {0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x28, 0x5F, 0x29, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x28, 0x5F, 0x7C, 0x20, 0x5C, 0x20, 0x5C, 0x5F, 0x2F, 0x20, 0x2F, 0x5C, 0x5F, 0x5F, 0x2F, 0x20, 0x2F, '\n', 0x5C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x2F, 0x5F, 0x7C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x7C, 0x5C, 0x5F, 0x5F, 0x5F, 0x2F, 0x7C, 0x5F, 0x7C, 0x20, 0x20, 0x7C, 0x5F, 0x7C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x7C, 0x5C, 0x5F, 0x5F, 0x2C, 0x5F, 0x7C, 0x5C, 0x5F, 0x5F, 0x5F, 0x2F, 0x5C, 0x5F, 0x5F, 0x5F, 0x5F, 0x2F, '\n', 0};
 extern shell_list_t* shell_variables = 0;
+
 extern reboot();
 
 void print_greetings()
 {
 	printf("Welcome to\n");
+	set_fg_color(LIGHTGREY);
 	printf("%s", almorina_title_I);
+	set_fg_color(PINK);
 	printf("%s", almorina_title_II);
+	set_fg_color(MAGENTA);
 	printf("%s\n", almorina_title_III);
+	set_fg_color(DARKGREY);
 }
 
 void strip_spaces(char* s)
@@ -123,31 +128,32 @@ int shell_eval_math_exp(const char* expression)
 	return *nums;
 }
 
-char *shell_combine_strings(char **str_array, uint64_t size) {
-  uint64_t total_length = 0;
+char *shell_combine_strings(char **str_array, uint64_t size) 
+{
+	uint64_t total_length = 0;
 
-  // Calculate the total length of the combined string
-  for (uint64_t i = 0; i < size; i++) {
-    total_length += strlen(str_array[i]) + 1;
-  }
-  total_length--;
+	// Calculate the total length of the combined string
+	for (uint64_t i = 0; i < size; i++) {
+	total_length += strlen(str_array[i]) + 1;
+	}
+	total_length--;
 
-  // Allocate a buffer for the combined string
-  char *combined_str = malloc(total_length + 1);
+	// Allocate a buffer for the combined string
+	char *combined_str = malloc(total_length + 1);
 
-  // Copy the strings into the combined string buffer
-  uint64_t pos = 0;
-  for (uint64_t i = 0; i < size; i++) {
-    uint64_t str_len = strlen(str_array[i]);
-    strncpy(combined_str + pos, str_array[i], str_len);
+	// Copy the strings into the combined string buffer
+	uint64_t pos = 0;
+	for (uint64_t i = 0; i < size; i++) {
+	uint64_t str_len = strlen(str_array[i]);
+	strncpy(combined_str + pos, str_array[i], str_len);
 	combined_str[pos+str_len] = ' ';
-    pos += str_len+1;
-  }
+	pos += str_len+1;
+	}
 
-  // Null-terminate the combined string
-  combined_str[total_length] = '\0';
+	// Null-terminate the combined string
+	combined_str[total_length] = '\0';
 
-  return combined_str;
+	return combined_str;
 }
 
 /* this function splits the command into its arguments 
@@ -185,6 +191,8 @@ int shell_parse(const char* line, char*** argv)
 
 void echo(char** argv, int argc)
 {
+	/// TODO: add check if '\'' or '"' appear twice
+	/// TODO: add check if there is '\n' or '\t'
 	for (int i = 1; i < argc; i++)
 	{
 		int len = strlen(argv[i]);
@@ -193,17 +201,30 @@ void echo(char** argv, int argc)
 			if(argv[i][j] != '\'' && argv[i][j] != '"')
 				putc(argv[i][j]);
 		}
+		putc(' ');
 	}
 	putc('\n');
 }
 
+/**
+save the given name & data in the given node
+INPUT:
+- node to save data & name in
+- name to save
+- data to save
+OUTPUT:
+- none
+*/
 void set_variable(shell_list_t* node, const char* name, const char* data)
 {
 	int name_len = strlen(name);
+
+	// set node's name
 	node->name = malloc(name_len);
 	strcpy(node->name, name);
 	node->name[name_len] = 0;
 
+	// check if data is a math expression [or a number] & set node's data accordingly
 	if (is_exp(data))
 	{
 		node->data = malloc(sizeof(int));
@@ -218,12 +239,13 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	node->next = 0;
 }
 
+// self explanatory
 void set(char** argv, int argc)
 {
 	char* data = shell_combine_strings(argv+2, argc-2);
 
 	// checks if variables with that name already exists
-	// if it does, we only change is value
+	// if it does, we only change its value
 	shell_list_t* curr = shell_variables;
 	while (curr)
 	{
@@ -238,9 +260,8 @@ void set(char** argv, int argc)
 	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
 	set_variable(node, argv[1], data);
-
-	printf("[%s]\n", node[0].name);
 	
+	// check is shell_variables is empty
     if(shell_variables == NULL) 
     	shell_variables = node;
 	else 
@@ -250,9 +271,12 @@ void set(char** argv, int argc)
 	}
 }
 
+// self explanatory
 void vars(char** argv, int argc)
 {
 	shell_list_t* curr = shell_variables;
+
+	// go over all the shell variables & print them
   	while(curr != NULL)
 	{
 		printf("$%s = ", curr->name);
@@ -270,24 +294,34 @@ void vars(char** argv, int argc)
 	}
 }
 
+// self explanatory
 void exit(char** argv, int argc)
 {
 	reboot();
 }
 
+/**
+
+INPUT:
+- 
+- 
+OUTPUT:
+- none
+*/
 void print_fs_tree(fs_inode_t* dir, int level)
 {
-	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
 	{
 		if (dir->blocks[i] == 0)
 			continue;
 
-		for (int j = 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		for (int j = 0; j < BLOCK_SIZE; j += sizeof(fs_dir_entry))
 		{
 			fs_dir_entry* ent = dir->blocks[i] + j;
-			if ( ent->is_taken == 1 )
+			if (ent->is_taken == 1)
 			{
-				for (int _ = 0; _<level; _++) puts("|---");
+				for (int k = 0; k < level; k++) 
+					puts("|---");
 				printf("%s -> %d\n", ent->name,  ent->inode);
 				if (ent->inode->mode == INODE_TYPE_DIR)
 					print_fs_tree(ent->inode, level+1);
@@ -296,11 +330,13 @@ void print_fs_tree(fs_inode_t* dir, int level)
 	}
 }
 
+// self explanatory
 void tree(char** argv, int argc)
 {
 	print_fs_tree(ramfs_root, 0);
 }
 
+// self explanatory
 void touch(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
@@ -320,6 +356,7 @@ void touch(char** argv, int argc)
 	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_FILE);
 }
 
+// self explanatory
 void mkdir(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
@@ -371,6 +408,7 @@ fs_dir_entry* file_exist(char** argv, int argc)
 	return file;
 }
 
+// self explanatory
 void edit(char** argv, int argc)
 {
 	fs_dir_entry* file = file_exist(argv, argc);
@@ -384,6 +422,7 @@ void edit(char** argv, int argc)
 	fs_inode_write_data(ramfs_device, file->inode, data);
 }
 
+// self explanatory
 void cat(char** argv, int argc) // change
 {
 	fs_dir_entry* file = file_exist(argv, argc);
@@ -396,8 +435,10 @@ void cat(char** argv, int argc) // change
 	free(data);
 }
 
+// self explanatory
 void ls(char** argv, int argc)
 {
+	/// TODO: add '/' to the end of a directory
 	char* path = shell_combine_strings(argv+1, argc-1);
 	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
 	if (dir == 0)
@@ -411,15 +452,12 @@ void ls(char** argv, int argc)
 		if (dir->blocks[i] == 0)
 			continue;
 
-		for (int j = 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		for (int j = 0; j < BLOCK_SIZE; j += sizeof(fs_dir_entry))
 		{
 			fs_dir_entry* ent = dir->blocks[i] + j;
-			if(ent->name[0] == 0)
-			{
-				i = NUM_OF_BLOCKS_IN_INODE;
-				break;
-			}
-			printf("%s\n", ent->name);
+
+			if (ent->is_taken == 1)
+				printf("%s\n", ent->name);
 		}
 	}
 }
@@ -441,6 +479,7 @@ struct shell_command shell_callback[] = {
 	{"ls",		1,			ls}
 };
 
+// self explanatory
 void help(char** argv, int argc)
 {
 	set_fg_color(DARKGREY);
@@ -493,11 +532,9 @@ void shell_main()
 
 		char** args;
 		int argc = shell_parse(line, &args);
-
 		shell_execute(args, argc);
 
-		//clean-up
-
+		// clean-up
 		//for (int i = 0; i < argc; i ++)
 		//	free(args[i]);
 		//free(args);

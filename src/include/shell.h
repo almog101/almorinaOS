@@ -1,4 +1,4 @@
-#ifndef SHELL_H
+#ifndef SHELshell_listL_H
 #define SHELL_H
 
 enum SHELL_TYPE
@@ -7,14 +7,13 @@ enum SHELL_TYPE
 	SHELL_TYPE_STRING,
 };
 
-struct shell_list
+typedef struct 
 {
 	struct shell_list* next;
 	char* name;
 	void* data;
 	enum SHELL_TYPE type;
-};
-typedef struct shell_list shell_list_t;
+}shell_list_t;
 
 typedef void (*SHELL_COMMAND_CALLBACK)(char**, int);
 

@@ -156,39 +156,6 @@ char *shell_combine_strings(char **str_array, uint64_t size)
 	return combined_str;
 }
 
-/* this function splits the command into its arguments 
- * and returns the number of them */
-int shell_parse(const char* line, char*** argv)
-{
-	int size = strlen(line);
-	char* start = line;
-	char* end = line;
-
-    int arg_count = count(line, ' ') + 1;
-    char** args = (char**)malloc(sizeof(char*) * (arg_count));
-
-	for (int i = 0; i < arg_count; i++)
-	{
-		// find the end of the argumnet
-		end = strchr(start, ' ');
-		if (end == 0)
-			end = line + size;
-
-		// copy the argument into new string
-		char* arg = malloc(end-start + 1);
-		strncpy(arg, start, end-start);
-		arg[end-start] = 0;
-		
-		args[i] = (char*)malloc(sizeof(char) * (end-start));
-		args[i] = arg;
-
-		start = end + 1;
-	}
-
-    *argv = args;
-	return arg_count;
-}
-
 void echo(char** argv, int argc)
 {
 	/// TODO: add check if '\'' or '"' appear twice
@@ -217,7 +184,10 @@ OUTPUT:
 */
 void set_variable(shell_list_t* node, const char* name, const char* data)
 {
-	int name_len = strlen(name);
+	int name_len = strlen(name) + 1;
+	node->name = (char*)malloc(name_len);
+	strcpy(node->name, name);
+	node->name[name_len-1] = 0;
 
 	// set node's name
 	node->name = malloc(name_len);
@@ -234,11 +204,8 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	else
 	{
 		int data_len = strlen(data) + 1;
-		
 		node->data = malloc( data_len );
-		printf("%d\n", node->data);
-		//strcpy(node->data, data);
-		strncpy(node->data, data, data_len-1);
+		strcpy(node->data, data);
 		((char*)node->data)[data_len] = 0;
 
 		node->type = SHELL_TYPE_STRING;
@@ -520,7 +487,9 @@ void shell_execute(char** argv, int argc)
 	printf("invalid command!\n");
 }
 
-int parse(char* line, char*** argv)
+/* this function splits the command into its arguments 
+ * and returns the number of them */
+int shell_parse(char* line, char*** argv)
 {
 	char* curr = line;
 	int argc = 1;
@@ -553,10 +522,8 @@ int parse(char* line, char*** argv)
 
 void shell_main()
 {
-	
 	char line[100] = {0};
-		char* a = malloc(5);
-		strcpy(a, "1234");
+	
 	do 
 	{
 		set_fg_color(LIGHTGREY);
@@ -573,15 +540,26 @@ void shell_main()
 			break;
 
 
+		//print_segs();
 		char** args;
-		int argc = parse(line, &args);
+		int argc = shell_parse(line, &args);
 
 		shell_execute(args, argc);
 
 		//clean-up
 		free(args);
-
-		printf("%s\n", a);
-
+		//print_segs();
 	} while(1);
+
+	shell_list_t* curr = shell_variables;
+	while (curr)
+	{
+		shell_list_t* tmp = curr;
+		curr = curr->next;
+
+		free(tmp->name);
+		free(tmp->data);
+		free(tmp);
+	}
+	print_segs();
 }

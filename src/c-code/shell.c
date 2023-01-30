@@ -46,7 +46,7 @@ bool isdigit(char c)
 	return (c>='0') && (c<='9');
 }
 
-bool is_exp(char* str)
+bool is_exp(const char* str)
 {
 	while(*str != 0)
 		if (isop(*str) != true && isdigit(*str) != true && *str != ' ')
@@ -176,7 +176,7 @@ int shell_parse(const char* line, char*** argv)
 
 		// copy the argument into new string
 		char* arg = malloc(end-start + 1);
-		memcpy(arg, start, end-start);
+		strncpy(arg, start, end-start);
 		arg[end-start] = 0;
 		
 		args[i] = (char*)malloc(sizeof(char) * (end-start));
@@ -233,7 +233,14 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	}
 	else
 	{
-		node->data = data;
+		int data_len = strlen(data) + 1;
+		
+		node->data = malloc( data_len );
+		printf("%d\n", node->data);
+		//strcpy(node->data, data);
+		strncpy(node->data, data, data_len-1);
+		((char*)node->data)[data_len] = 0;
+
 		node->type = SHELL_TYPE_STRING;
 	}
 	node->next = 0;
@@ -242,7 +249,7 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 // self explanatory
 void set(char** argv, int argc)
 {
-	char* data = shell_combine_strings(argv+2, argc-2);
+	const char* data = shell_combine_strings(&argv[2], argc-2);
 
 	// checks if variables with that name already exists
 	// if it does, we only change its value
@@ -252,6 +259,7 @@ void set(char** argv, int argc)
 		if (strcmp(curr->name, argv[1]) == 0)
 		{
 			set_variable(curr, argv[1], data);
+			free(data);
 			return;
 		}
 		curr = curr->next;
@@ -260,15 +268,13 @@ void set(char** argv, int argc)
 	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
 	set_variable(node, argv[1], data);
+	printf("%d\n", data);
+	free(data);
+
+	printf("[%s]\n", node->name);
 	
-	// check is shell_variables is empty
-    if(shell_variables == NULL) 
-    	shell_variables = node;
-	else 
-	{
-		node->next = shell_variables;
-		shell_variables = node;
-	}
+	node->next = shell_variables;
+	shell_variables = node;
 }
 
 // self explanatory
@@ -354,6 +360,7 @@ void touch(char** argv, int argc)
 
 	printf("new file [%s] in inode %d\n", filename, dir);
 	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_FILE);
+	free(path);
 }
 
 // self explanatory
@@ -374,6 +381,7 @@ void mkdir(char** argv, int argc)
 
 	printf("new dir [%s] in inode %d\n", filename, dir);
 	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_DIR);
+	free(path);
 }
 
 fs_dir_entry* file_exist(char** argv, int argc)
@@ -400,10 +408,8 @@ fs_dir_entry* file_exist(char** argv, int argc)
 
 	check:
 	if (file == -1)
-	{
 		puts("file doesn't exist\n");
-		free(filename);
-	}
+	free(filename);
 
 	return file;
 }
@@ -514,10 +520,43 @@ void shell_execute(char** argv, int argc)
 	printf("invalid command!\n");
 }
 
+int parse(char* line, char*** argv)
+{
+	char* curr = line;
+	int argc = 1;
+
+	while(*curr)
+		if (*(curr++) == ' ')
+			argc++;
+
+	char** args = malloc(sizeof(char*) * argc);
+	char* start = line;
+	int i;
+	curr = line;
+
+	for (i =0; i<argc && *curr;)
+	{
+		if (*curr == ' ')
+		{
+			args[i++] = start;
+			*curr = 0;
+			start = curr+1;
+		}
+		curr++;
+	}
+	args[i] = start;
+
+	*argv = args;
+	return argc;
+}
+
+
 void shell_main()
 {
-	char line[100] = {0};
 	
+	char line[100] = {0};
+		char* a = malloc(5);
+		strcpy(a, "1234");
 	do 
 	{
 		set_fg_color(LIGHTGREY);
@@ -530,14 +569,19 @@ void shell_main()
 			if (*i == '\n') 
 				*i = 0;
 
+		if (strcmp(line, "exit") == 0)
+			break;
+
+
 		char** args;
-		int argc = shell_parse(line, &args);
+		int argc = parse(line, &args);
+
 		shell_execute(args, argc);
 
-		// clean-up
-		//for (int i = 0; i < argc; i ++)
-		//	free(args[i]);
-		//free(args);
+		//clean-up
+		free(args);
+
+		printf("%s\n", a);
 
 	} while(1);
 }

@@ -25,6 +25,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	cls();
 	print_greetings();
 
+
 	shell_main();
 }
 

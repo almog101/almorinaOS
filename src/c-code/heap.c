@@ -45,8 +45,7 @@ void* malloc(uint64_t size)
 	// align allocated size to be multiple of 8
 	uint64_t remainder = size % 8;
 	size -= remainder;
-	if (remainder != 0) 
-		size += 8;
+	if (remainder != 0) size += 8;
 
 	memory_segment_t* curr_seg = first_free_memory_seg;
 

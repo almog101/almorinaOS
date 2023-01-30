@@ -16,6 +16,11 @@ int initialize_memory(unsigned long magic, unsigned long addr)
 
 void initialize_heap(uint64_t addr, uint64_t size)
 {
+	if (addr == 0)
+	{
+		addr++;
+		size--;
+	}
 	heap = (mem_segment_t*)addr;
 	free_seg = heap;
 
@@ -23,7 +28,6 @@ void initialize_heap(uint64_t addr, uint64_t size)
     free_seg->free = 1;
     free_seg->next = 0;
 }
-
 
 void split(mem_segment_t * fitting_slot, uint64_t size) {
     mem_segment_t * new = (void * )((void * ) fitting_slot + size + sizeof(mem_segment_t));
@@ -37,40 +41,33 @@ void split(mem_segment_t * fitting_slot, uint64_t size) {
 
 void * malloc(uint64_t noOfBytes) 
 {
-    mem_segment_t * curr, * prev;
-    void * result;
+    mem_segment_t * curr = free_seg;
 
-    curr = free_seg;
-    while ((((curr->len) < noOfBytes) || ((curr->free) == 0)) && (curr->next != 0)) {
-        prev = curr;
-        curr = curr->next;
-    }
+	while (curr)
+	{
+		if (curr->free && curr->len == noOfBytes) // if there is a free segment with the exact size
+		{
+			curr->free = false;
+			return (void*)(curr+1);
+		}
 
-    if (curr->len == noOfBytes) 
-	{
-        curr->free = 0;
-        result = (void * )(++curr);
-    } 
-	else if (curr->len > noOfBytes + sizeof(mem_segment_t)) 
-	{
-        split(curr, noOfBytes);
-        result = (void * )(++curr);
-    } 
-	else 
-	{
-        result = 0;
-        printf("Sorry. No sufficient memory to allocate\n");
-		printf("%d %d\n", free_seg, curr);
-		print_segs();
-    }
-    return result;
+		if (curr->free && curr->len > noOfBytes + sizeof(mem_segment_t) ) // if there is a free segement large enough to split
+		{
+			split(curr, noOfBytes);
+			return (void*)(curr+1);
+		}
+		curr = curr->next;
+	}
+
+	printf("Sorry. No sufficient memory to allocate\n");
+	return 0;
 }
 
 void merge() {
     mem_segment_t * curr;
     curr = free_seg;
 
-    do
+    while (curr && curr->next)
 	{
         if (curr->free && curr->next->free) 
 		{
@@ -79,7 +76,7 @@ void merge() {
         }
 		else
 			curr = curr->next;
-    }while (curr && curr->next);
+    }
 }
 
 void free(void * ptr) 
@@ -88,7 +85,7 @@ void free(void * ptr)
 	bool isvalid = false;
 
 	// finds if the address to free is an actual segment
-	do
+	while(curr)
 	{
 		if (((void*)curr) + sizeof(mem_segment_t) == ptr)
 		{
@@ -96,7 +93,7 @@ void free(void * ptr)
 			break;
 		}
 		curr = curr->next;
-	}while(curr);
+	}
 	
 	if (!isvalid)
 	{
@@ -111,9 +108,10 @@ void free(void * ptr)
 void print_segs() {
     mem_segment_t* curr =heap;
 	puts("----- Mem Segs -----\n");
-    do{
+    while (curr)
+	{
         printf("0x%x %d %d\n", curr, curr -> len, curr -> free);
         curr = curr -> next;
-    }while (curr);
+    }
 	puts("--------------------\n");
 }

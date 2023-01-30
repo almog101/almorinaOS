@@ -235,7 +235,6 @@ void set(char** argv, int argc)
 	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
 	set_variable(node, argv[1], data);
-	printf("%d\n", data);
 	free(data);
 
 	printf("[%s]\n", node->name);
@@ -536,11 +535,6 @@ void shell_main()
 			if (*i == '\n') 
 				*i = 0;
 
-		if (strcmp(line, "exit") == 0)
-			break;
-
-
-		//print_segs();
 		char** args;
 		int argc = shell_parse(line, &args);
 
@@ -548,7 +542,6 @@ void shell_main()
 
 		//clean-up
 		free(args);
-		//print_segs();
 	} while(1);
 
 	shell_list_t* curr = shell_variables;

@@ -14,7 +14,7 @@ extern shell_list_t* shell_variables = 0;
 
 extern reboot();
 
-// prints almorina's title
+/// Prints almorina os' title.
 void print_greetings()
 {
 	printf("Welcome to\n");
@@ -27,7 +27,7 @@ void print_greetings()
 	set_fg_color(DARKGREY);
 }
 
-// removes all place characters from the given string
+/// Removes all space chars from s.
 void strip_spaces(char* s)
 {
 	const char* d = s;
@@ -38,30 +38,32 @@ void strip_spaces(char* s)
     } while (*s++ = *d++);
 }
 
-// checks if the given char is one of the math operation
+/// Checks if c is one of the math operation (-, +, /, *).
 bool isop(char c)
 {
 	return ((c == '-') || (c == '+') || (c == '/') || (c == '*'));
 }
 
-// checks if the given char is a numeric char
+/// Checks if c is a numeric char.
 bool isdigit(char c)
 {
 	return (c >= '0') && (c <= '9');
 }
 
-// checks if the given string is a legit expression
+/// Checks if the given string is math expression.
 bool is_exp(const char* str)
 {
 	while(*str != 0)
+	{
 		if ((isop(*str) != true) && (isdigit(*str) != true) && (*str != ' '))
 			return false;
 		else
 			str++;
+	}
 	return true;
 }
 
-/**
+/** TODO: add comments
 
 ONPUT:
 - 
@@ -141,14 +143,21 @@ int shell_eval_math_exp(const char* expression)
 	return *nums;
 }
 
-char *shell_combine_strings(char **str_array, uint64_t size) 
+/**
+Combine all the string in str_array to one string
+ONPUT:
+- array of strings
+- number of string to combine [?]
+OUTPUT:
+- combined string
+*/
+char* shell_combine_strings(char** str_array, uint64_t size) 
 {
 	uint64_t total_length = 0;
 
 	// Calculate the total length of the combined string
-	for (uint64_t i = 0; i < size; i++) {
-	total_length += strlen(str_array[i]) + 1;
-	}
+	for (uint64_t i = 0; i < size; i++) 
+		total_length += strlen(str_array[i]) + 1;
 	total_length--;
 
 	// Allocate a buffer for the combined string
@@ -156,19 +165,20 @@ char *shell_combine_strings(char **str_array, uint64_t size)
 
 	// Copy the strings into the combined string buffer
 	uint64_t pos = 0;
-	for (uint64_t i = 0; i < size; i++) {
-	uint64_t str_len = strlen(str_array[i]);
-	strncpy(combined_str + pos, str_array[i], str_len);
-	combined_str[pos+str_len] = ' ';
-	pos += str_len+1;
+	for (uint64_t i = 0; i < size; i++) 
+	{
+		uint64_t str_len = strlen(str_array[i]);
+		strncpy(combined_str + pos, str_array[i], str_len);
+		combined_str[pos+str_len] = ' ';
+		pos += str_len+1;
 	}
-
 	// Null-terminate the combined string
-	combined_str[total_length] = '\0';
+	combined_str[total_length] = 0;
 
 	return combined_str;
 }
 
+// self explanatory
 void echo(char** argv, int argc)
 {
 	/// TODO: add check if '\'' or '"' appear twice
@@ -314,10 +324,10 @@ void exit(char** argv, int argc)
 }
 
 /**
-
+Print the tree of dir until level.
 INPUT:
-- 
-- 
+- directory to print from
+- when to stop printing
 OUTPUT:
 - none
 */
@@ -391,6 +401,14 @@ void mkdir(char** argv, int argc)
 	free(path);
 }
 
+/**
+
+INPUT:
+- 
+- 
+OUTPUT:
+- 
+*/
 fs_dir_entry* file_exist(char** argv, int argc)
 {
 	char* filename = shell_combine_strings(argv+1, argc-1);
@@ -527,16 +545,24 @@ void shell_execute(char** argv, int argc)
 	printf("invalid command!\n");
 }
 
-/* this function splits the command into its arguments 
- * and returns the number of them */
+/** TODO: complete this plz
+Split the command into its arguments & return the number of them 
+INPUT:
+- 
+-
+OUTPUT:
+- 
+*/
 int shell_parse(char* line, char*** argv)
 {
 	char* curr = line;
 	int argc = 1;
 
 	while(*curr)
+	{
 		if (*(curr++) == ' ')
 			argc++;
+	}
 
 	char** args = malloc(sizeof(char*) * argc);
 	char* start = line;
@@ -558,7 +584,6 @@ int shell_parse(char* line, char*** argv)
 	*argv = args;
 	return argc;
 }
-
 
 void shell_main()
 {

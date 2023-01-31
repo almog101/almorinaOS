@@ -51,7 +51,7 @@ bool isdigit(char c)
 }
 
 // checks if the given string is a legit expression
-bool is_exp(char* str)
+bool is_exp(const char* str)
 {
 	while(*str != 0)
 		if ((isop(*str) != true) && (isdigit(*str) != true) && (*str != ' '))
@@ -169,39 +169,6 @@ char *shell_combine_strings(char **str_array, uint64_t size)
 	return combined_str;
 }
 
-/* this function splits the command into its arguments 
- * and returns the number of them */
-int shell_parse(const char* line, char*** argv)
-{
-	int size = strlen(line);
-	char* start = line;
-	char* end = line;
-
-    int arg_count = count(line, ' ') + 1;
-    char** args = (char**)malloc(sizeof(char*) * (arg_count));
-
-	for (int i = 0; i < arg_count; i++)
-	{
-		// find the end of the argumnet
-		end = strchr(start, ' ');
-		if (end == 0)
-			end = line + size;
-
-		// copy the argument into new string
-		char* arg = malloc(end-start + 1);
-		memcpy(arg, start, end-start);
-		arg[end-start] = 0;
-		
-		args[i] = (char*)malloc(sizeof(char) * (end-start));
-		args[i] = arg;
-
-		start = end + 1;
-	}
-
-    *argv = args;
-	return arg_count;
-}
-
 void echo(char** argv, int argc)
 {
 	/// TODO: add check if '\'' or '"' appear twice
@@ -258,7 +225,10 @@ OUTPUT:
 */
 void set_variable(shell_list_t* node, const char* name, const char* data)
 {
-	int name_len = strlen(name);
+	int name_len = strlen(name) + 1;
+	node->name = (char*)malloc(name_len);
+	strcpy(node->name, name);
+	node->name[name_len-1] = 0;
 
 	// set node's name
 	node->name = malloc(name_len);
@@ -274,7 +244,11 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	}
 	else
 	{
-		node->data = data;
+		int data_len = strlen(data) + 1;
+		node->data = malloc( data_len );
+		strcpy(node->data, data);
+		((char*)node->data)[data_len] = 0;
+
 		node->type = SHELL_TYPE_STRING;
 	}
 	node->next = 0;
@@ -283,7 +257,7 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 // self explanatory
 void set(char** argv, int argc)
 {
-	char* data = shell_combine_strings(argv+2, argc-2);
+	const char* data = shell_combine_strings(&argv[2], argc-2);
 
 	// checks if variables with that name already exists
 	// if it does, we only change its value
@@ -293,6 +267,7 @@ void set(char** argv, int argc)
 		if (strcmp(curr->name, argv[1]) == 0)
 		{
 			set_variable(curr, argv[1], data);
+			free(data);
 			return;
 		}
 		curr = curr->next;
@@ -301,15 +276,12 @@ void set(char** argv, int argc)
 	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
 	set_variable(node, argv[1], data);
+	free(data);
+
+	printf("[%s]\n", node->name);
 	
-	// check is shell_variables is empty
-    if(shell_variables == NULL) 
-    	shell_variables = node;
-	else 
-	{
-		node->next = shell_variables;
-		shell_variables = node;
-	}
+	node->next = shell_variables;
+	shell_variables = node;
 }
 
 // self explanatory
@@ -395,6 +367,7 @@ void touch(char** argv, int argc)
 
 	printf("new file [%s] in inode %d\n", filename, dir);
 	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_FILE);
+	free(path);
 }
 
 // self explanatory
@@ -415,78 +388,64 @@ void mkdir(char** argv, int argc)
 
 	printf("new dir [%s] in inode %d\n", filename, dir);
 	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_DIR);
+	free(path);
+}
+
+fs_dir_entry* file_exist(char** argv, int argc)
+{
+	char* filename = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = ramfs_root;
+	fs_dir_entry* file = -1;
+
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j= 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if (strcmp(ent->name, filename) == 0)
+			{
+				file = ent;
+				goto check;
+			}
+		}
+	}
+
+	check:
+	if (file == -1)
+		puts("file doesn't exist\n");
+	free(filename);
+
+	return file;
 }
 
 // self explanatory
 void edit(char** argv, int argc)
 {
-	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
-	if (dir == 0)
-	{
-		puts("path doesnt exist!\n");
+	fs_dir_entry* file = file_exist(argv, argc);
+
+	if (file == -1)
 		return;
-	}
-
-	int len = 0;
-	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
-	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
-	filename[len] = 0;
-	fs_dir_entry* ent = 0;
-
-	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
-	{
-		if (dir->blocks[i] == 0)
-			continue;
-
-		for (int j = 0; j < BLOCK_SIZE; j += sizeof(fs_dir_entry))
-		{
-			ent = dir->blocks[i] + j;
-
-			if (strcmp(filename, ent->name) == 0)
-			{
-				break;
-			}
-		}
-	}
 
 	puts("Enter new file contents: ");
 	char data[100] = {0};
 	fgets(data, sizeof(data));
-	fs_inode_write_data(ramfs_device, ent->inode, data);
+	fs_inode_write_data(ramfs_device, file->inode, data);
 }
 
 // self explanatory
 void cat(char** argv, int argc) // change
 {
-	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
-	if (dir == 0)
-	{
-		puts("path doesnt exist!\n");
+	fs_dir_entry* file = file_exist(argv, argc);
+
+	if (file == -1)
 		return;
-	}
 
-	int len = 0;
-	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
-	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
-	filename[len] = 0;
-	char* data = 0;
-
-	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
-	{
-		if (dir->blocks[i] == 0)
-			continue;
-
-		for (int j = 0; j < BLOCK_SIZE; j += sizeof(fs_dir_entry))
-		{
-			fs_dir_entry* ent = dir->blocks[i] + j;
-
-			if (strcmp(filename, ent->name) == 0)
-				data = fs_inode_get_data(ramfs_device, ent->inode);
-		}
-	}
-	printf("%s\n", data);
+	char* data = fs_inode_get_data(ramfs_device, file->inode);
+	puts(data);
+	free(data);
 }
 
 // self explanatory
@@ -568,6 +527,39 @@ void shell_execute(char** argv, int argc)
 	printf("invalid command!\n");
 }
 
+/* this function splits the command into its arguments 
+ * and returns the number of them */
+int shell_parse(char* line, char*** argv)
+{
+	char* curr = line;
+	int argc = 1;
+
+	while(*curr)
+		if (*(curr++) == ' ')
+			argc++;
+
+	char** args = malloc(sizeof(char*) * argc);
+	char* start = line;
+	int i;
+	curr = line;
+
+	for (i =0; i<argc && *curr;)
+	{
+		if (*curr == ' ')
+		{
+			args[i++] = start;
+			*curr = 0;
+			start = curr+1;
+		}
+		curr++;
+	}
+	args[i] = start;
+
+	*argv = args;
+	return argc;
+}
+
+
 void shell_main()
 {
 	char line[100] = {0};
@@ -586,12 +578,22 @@ void shell_main()
 
 		char** args;
 		int argc = shell_parse(line, &args);
+
 		shell_execute(args, argc);
 
-		// clean-up
-		//for (int i = 0; i < argc; i ++)
-		//	free(args[i]);
-		//free(args);
-
+		//clean-up
+		free(args);
 	} while(1);
+
+	shell_list_t* curr = shell_variables;
+	while (curr)
+	{
+		shell_list_t* tmp = curr;
+		curr = curr->next;
+
+		free(tmp->name);
+		free(tmp->data);
+		free(tmp);
+	}
+	print_segs();
 }

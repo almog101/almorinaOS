@@ -19,10 +19,9 @@ void memset(uint8_t *dest, uint8_t val, uint32_t len)
 
 char *strcpy(char *dest, const char *src)
 {
-    do
-	{
-      	*dest++ = *src++;
-	} while (*src != 0);
+    char *temp = dest;
+    while(*dest++ = *src++);
+    return temp;
 }
 
 char *strncpy(char *dest, const char *src, int size)
@@ -63,7 +62,7 @@ int atoi(char* str)
 	return n;
 }
 
-int strlen(char* str)
+int strlen(const char* str)
 {
 	int n = 0;
 	while (*(str))

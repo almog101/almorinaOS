@@ -4,15 +4,15 @@ C_OBJS := $(patsubst src/c-code/%.c, bin/%.o,$(C_SRC))
 ASM_SRC := $(wildcard src/assembly/*.asm)
 ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
 
-CC=x86_64-elf-gcc
-LD=x86_64-elf-ld
+CC=x86_64-linux-gnu-gcc
+LD=x86_64-linux-gnu-ld
 
 CC_EXISTS := $(shell command -v $(CC) 2> /dev/null)
 
 all:
 ifndef CC_EXISTS
-	CC=x86_64-linux-gnu-gcc
-	LD=x86_64-linux-gnu-ld
+	CC=x86_64-elf-gcc
+	LD=x86_64-elf-ld
 endif
 
 all: build

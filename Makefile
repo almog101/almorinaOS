@@ -50,6 +50,9 @@ run-debug:
 run-gdb:
 	gdb -tui -ex "target remote localhost:1234" -ex "set disassembly-flavor intel" -ex "symbol-file bin/kernel.sym"
 
+run-gdb-gui:
+	gf2 -ex "target remote localhost:1234" -ex "set disassembly-flavor intel" -ex "symbol-file bin/kernel.sym"
+
 clean:
 	rm -rf bin iso/boot/kernel.bin
 	rm -f shell

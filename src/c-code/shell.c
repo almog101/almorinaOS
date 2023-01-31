@@ -53,14 +53,18 @@ bool isdigit(char c)
 /// Checks if the given string is math expression.
 bool is_exp(const char* str)
 {
+	bool as_digit = false;
+
 	while(*str != 0)
 	{
 		if ((isop(*str) != true) && (isdigit(*str) != true) && (*str != ' '))
 			return false;
 		else
+		{
+			as_digit = as_digit || isdigit(*str);
 			str++;
-	}
-	return true;
+		}
+	return true && as_digit;
 }
 
 /** TODO: add comments
@@ -264,20 +268,16 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	node->next = 0;
 }
 
-// self explanatory
-void set(char** argv, int argc)
+void variables_push(const char* name, const char* data)
 {
-	const char* data = shell_combine_strings(&argv[2], argc-2);
-
 	// checks if variables with that name already exists
 	// if it does, we only change its value
 	shell_list_t* curr = shell_variables;
 	while (curr)
 	{
-		if (strcmp(curr->name, argv[1]) == 0)
+		if (strcmp(curr->name, name) == 0)
 		{
-			set_variable(curr, argv[1], data);
-			free(data);
+			set_variable(curr, name, data);
 			return;
 		}
 		curr = curr->next;
@@ -285,13 +285,18 @@ void set(char** argv, int argc)
 
 	// create new var and insert it into the beginning of the list
 	shell_list_t* node = malloc(sizeof(shell_list_t));
-	set_variable(node, argv[1], data);
-	free(data);
-
-	printf("[%s]\n", node->name);
-	
+	set_variable(node, name, data);
 	node->next = shell_variables;
 	shell_variables = node;
+}
+
+// self explanatory
+void set(char** argv, int argc)
+{
+	const char* data = shell_combine_strings(&argv[2], argc-2);
+	variables_push(argv[1], data);
+	printf("[%s]\n", argv[1]);
+	free(data);
 }
 
 // self explanatory
@@ -363,7 +368,7 @@ void tree(char** argv, int argc)
 void touch(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -384,7 +389,7 @@ void touch(char** argv, int argc)
 void mkdir(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -471,7 +476,7 @@ void ls(char** argv, int argc)
 {
 	/// TODO: add '/' to the end of a directory
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -493,6 +498,12 @@ void ls(char** argv, int argc)
 	}
 }
 
+void pwd(char** argv, int argc)
+{
+	fs_inode_t* dir = fs_get_inode(ramfs_device, ramfs_root, "/root");
+	printf("%d\n", dir);
+}
+
 void help(char** argv, int argc);
 
 struct shell_command shell_callback[] = {
@@ -507,7 +518,8 @@ struct shell_command shell_callback[] = {
 	{"tree",	1,			tree},
 	{"edit",	2,			edit},
 	{"cat",		2,			cat},
-	{"ls",		1,			ls}
+	{"ls",		1,			ls},
+	{"pwd",		1,			pwd}
 };
 
 // self explanatory
@@ -587,8 +599,9 @@ int shell_parse(char* line, char*** argv)
 
 void shell_main()
 {
-	char line[100] = {0};
-	
+	char line[200] = {0};
+	variables_push("pwd", "/root");
+
 	do 
 	{
 		set_fg_color(LIGHTGREY);

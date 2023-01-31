@@ -57,7 +57,7 @@ int strcmp(const char *str1, const char *str2)
 
 int atoi(char* str)
 {
-	int n=0;
+	int n = 0;
 	while (*(str))
 		n = n*10 +  *(str++) - '0';
 	return n;

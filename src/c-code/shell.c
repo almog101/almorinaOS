@@ -14,6 +14,7 @@ extern shell_list_t* shell_variables = 0;
 
 extern reboot();
 
+// prints almorina's title
 void print_greetings()
 {
 	printf("Welcome to\n");
@@ -26,36 +27,47 @@ void print_greetings()
 	set_fg_color(DARKGREY);
 }
 
+// removes all place characters from the given string
 void strip_spaces(char* s)
 {
 	const char* d = s;
-    do {
-        while (*d == ' ') {
+    do 
+	{
+    	while (*d == ' ')
             ++d;
-        }
     } while (*s++ = *d++);
 }
 
+// checks if the given char is one of the math operation
 bool isop(char c)
 {
 	return ((c == '-') || (c == '+') || (c == '/') || (c == '*'));
 }
 
+// checks if the given char is a numeric char
 bool isdigit(char c)
 {
-	return (c>='0') && (c<='9');
+	return (c >= '0') && (c <= '9');
 }
 
+// checks if the given string is a legit expression
 bool is_exp(char* str)
 {
 	while(*str != 0)
-		if (isop(*str) != true && isdigit(*str) != true && *str != ' ')
+		if ((isop(*str) != true) && (isdigit(*str) != true) && (*str != ' '))
 			return false;
 		else
 			str++;
 	return true;
 }
 
+/**
+
+ONPUT:
+- 
+OUTPUT:
+- 
+*/
 int shell_eval_math_exp(const char* expression)
 {
 	char exp[100] ={0};
@@ -68,29 +80,31 @@ int shell_eval_math_exp(const char* expression)
 	
 	// parse expression to operators and numbers
 	char* p = exp;
-	for (int i = 0; i < sizeof(exp) && exp[i]; i++)
+	for (int i = 0; (i < sizeof(exp)) && exp[i]; i++)
 	{
 		if (isop(exp[i]))
 		{
-			ops[count] = exp[i];
-			exp[i] =0;
-			nums[count++ ] = atoi(p);
-			p = exp+i+1;
+			ops[count] = exp[i];		// add math operator to ops
+			exp[i] = 0;					// nullify the math operator in expression
+			nums[count++] = atoi(p);	// add the number before the math operator to nums
+			p = exp + i + 1;			// set p to the number after the math operator
 		}
 	}
 	nums[count++] = atoi(p);
 
-
 	while (count > 0)
 	{
 		int index = 0;
-		for (int i = 1; i<count-1; i++)
+		for (int i = 1; i < (count - 1); i++)
+		{
 			if ((ops[index] == '-' || ops[index] == '+') && (ops[i] == '*' || ops[i] == '/'))
 				index = i;
+		}
 
-
-		int n;
-		switch (ops[index]) {
+		// save in n the result of a math expression
+		int n = 0;
+		switch (ops[index]) 
+		{
 		case '-':
 			n = nums[index] - nums[index+1];
 			break;
@@ -103,7 +117,6 @@ int shell_eval_math_exp(const char* expression)
 				printf("Error: can't devide by 0!\n");
 				return 0;
 			}
-
 			n = nums[index] / nums[index+1];
 			break;
 		case '*':
@@ -193,15 +206,43 @@ void echo(char** argv, int argc)
 {
 	/// TODO: add check if '\'' or '"' appear twice
 	/// TODO: add check if there is '\n' or '\t'
+	int num = 0;
+	char str[100] = {0};
+
 	for (int i = 1; i < argc; i++)
 	{
-		int len = strlen(argv[i]);
-		for(int j = 0; j < len; j++)
+		if(argv[i][0] == '$')
 		{
-			if(argv[i][j] != '\'' && argv[i][j] != '"')
-				putc(argv[i][j]);
+			char var_name[100] = {0};
+			int str_len = strlen(argv[i]);
+			strncpy(var_name, argv[i] + 1, str_len - 1);
+			var_name[str_len] = 0;
+
+			shell_list_t* curr = shell_variables;
+			while (curr)
+			{
+				if (strcmp(curr->name, var_name) == 0)
+				{
+					switch(curr->type)
+					{
+					case SHELL_TYPE_INT:
+						printf("%d", *(int*)(curr->data));
+						break;
+					case SHELL_TYPE_STRING:
+						printf("%s", curr->data);
+						break;
+					}
+					putc(' ');
+				}
+				curr = curr->next;
+			}
 		}
-		putc(' ');
+
+		else
+		{
+			puts(argv[i]);
+			putc(' ');
+		}
 	}
 	putc('\n');
 }
@@ -367,7 +408,7 @@ void mkdir(char** argv, int argc)
 		return;
 	}
 
-	int len;
+	int len = 0;
 	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
 	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
 	filename[len] = 0;
@@ -376,63 +417,76 @@ void mkdir(char** argv, int argc)
 	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_DIR);
 }
 
-fs_dir_entry* file_exist(char** argv, int argc)
+// self explanatory
+void edit(char** argv, int argc)
 {
-	char* filename = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = ramfs_root;
-	fs_dir_entry* file = -1;
+	char* path = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	if (dir == 0)
+	{
+		puts("path doesnt exist!\n");
+		return;
+	}
 
-	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	int len = 0;
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
+	filename[len] = 0;
+	fs_dir_entry* ent = 0;
+
+	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
 	{
 		if (dir->blocks[i] == 0)
 			continue;
 
-		for (int j= 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		for (int j = 0; j < BLOCK_SIZE; j += sizeof(fs_dir_entry))
 		{
-			fs_dir_entry* ent = dir->blocks[i] + j;
-			if (strcmp(ent->name, filename) == 0)
+			ent = dir->blocks[i] + j;
+
+			if (strcmp(filename, ent->name) == 0)
 			{
-				file = ent;
-				goto check;
+				break;
 			}
 		}
 	}
 
-	check:
-	if (file == -1)
-	{
-		puts("file doesn't exist\n");
-		free(filename);
-	}
-
-	return file;
-}
-
-// self explanatory
-void edit(char** argv, int argc)
-{
-	fs_dir_entry* file = file_exist(argv, argc);
-
-	if (file == -1)
-		return;
-
 	puts("Enter new file contents: ");
 	char data[100] = {0};
 	fgets(data, sizeof(data));
-	fs_inode_write_data(ramfs_device, file->inode, data);
+	fs_inode_write_data(ramfs_device, ent->inode, data);
 }
 
 // self explanatory
 void cat(char** argv, int argc) // change
 {
-	fs_dir_entry* file = file_exist(argv, argc);
-
-	if (file == -1)
+	char* path = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = fs_get_entry_dir(ramfs_device, ramfs_root, path);
+	if (dir == 0)
+	{
+		puts("path doesnt exist!\n");
 		return;
+	}
 
-	char* data = fs_inode_get_data(ramfs_device, file->inode);
-	puts(data);
-	free(data);
+	int len = 0;
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
+	filename[len] = 0;
+	char* data = 0;
+
+	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j = 0; j < BLOCK_SIZE; j += sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+
+			if (strcmp(filename, ent->name) == 0)
+				data = fs_inode_get_data(ramfs_device, ent->inode);
+		}
+	}
+	printf("%s\n", data);
 }
 
 // self explanatory
@@ -447,7 +501,7 @@ void ls(char** argv, int argc)
 		return;
 	}
 
-	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
 	{
 		if (dir->blocks[i] == 0)
 			continue;

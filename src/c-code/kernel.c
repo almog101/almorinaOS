@@ -20,7 +20,9 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	prepare_interrupts();
 	initialize_memory(magic, addr);
 	ramfs_device = fs_initialize(100, 30);
+	//ramfs_root = fs_dir_add_entry(ramfs_device, 0, "/dir", INODE_TYPE_DIR);
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
+	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 	cls();
 	print_greetings();

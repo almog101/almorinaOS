@@ -152,7 +152,7 @@ INPUT:
 OUTPUT:
 - result of the search of the given file in the given directory
 */
-fs_dir_entry* fs_get_entry_by_filename(fs_inode_t* dir, const char* filename)
+fs_inode_t* fs_get_inode_by_filename(fs_inode_t* dir, const char* filename)
 {
 	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
 	{
@@ -166,7 +166,7 @@ fs_dir_entry* fs_get_entry_by_filename(fs_inode_t* dir, const char* filename)
 			fs_dir_entry* ent = dir->blocks[i] + j;
 			// check if the given file is in the given inode
 			if (strcmp(ent->name, filename) == 0)
-				return ent;
+				return ent->inode;
 		}
 	}
 
@@ -183,7 +183,7 @@ INPUT:
 OUTPUT:
 - 
 */
-fs_inode_t* fs_get_entry_dir(fs_superblock_t* device, fs_inode_t* dir, const char* path)
+fs_inode_t* fs_get_inode_dir(fs_superblock_t* device, fs_inode_t* dir, const char* path)
 {
 	char* filename_start = path;
 	char* filename_end = path;
@@ -197,7 +197,7 @@ fs_inode_t* fs_get_entry_dir(fs_superblock_t* device, fs_inode_t* dir, const cha
 	}
 
 	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
-	fs_dir_entry* ent = 0;
+	fs_inode_t* ent = 0;
 
 	/// TODO: add there comment plz
 	while(*filename_end)
@@ -210,10 +210,10 @@ fs_inode_t* fs_get_entry_dir(fs_superblock_t* device, fs_inode_t* dir, const cha
 				strncpy(filename, filename_start, filename_end-filename_start);
 				filename[filename_end-filename_start] = 0;
 
-				ent = fs_get_entry_by_filename(dir, filename);
+				ent = fs_get_inode_by_filename(dir, filename);
 				// check if the gotten directory entry is not empty & is directory
-				if (ent && ent->inode->mode == INODE_TYPE_DIR)
-					dir = ent->inode;
+				if (ent && ent->mode == INODE_TYPE_DIR)
+					dir = ent;
 				else
 					// no directory was found
 					return 0;
@@ -229,7 +229,7 @@ fs_inode_t* fs_get_entry_dir(fs_superblock_t* device, fs_inode_t* dir, const cha
 		return dir;
 	
 	/// TODO: there too
-	return ent->inode;
+	return ent;
 }
 
 /**
@@ -267,16 +267,16 @@ INPUT:
 OUTPUT:
 - 
 */
-fs_dir_entry* fs_get_entry(fs_superblock_t* device, fs_inode_t* dir, const char* path)
+fs_inode_t* fs_get_inode(fs_superblock_t* device, fs_inode_t* dir, const char* path)
 {
-	fs_inode_t* parent_dir  = fs_get_entry_dir(device, dir, path);
+	fs_inode_t* parent_dir  = fs_get_inode_dir(device, dir, path);
 	int len = 0;
 	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
 
 	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
 	filename[len] = 0;
 
-	return fs_get_entry_by_filename(parent_dir, filename);
+	return fs_get_inode_by_filename(parent_dir, filename);
 }
 
 /**

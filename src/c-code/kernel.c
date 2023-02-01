@@ -14,9 +14,12 @@ fs_superblock_t* device;
 
 void prepare_interrupts();
 
+extern int sse_enable(void);
+
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	prepare_interrupts();
+	int sse = sse_enable();
 	initialize_memory(magic, addr);
 	ramfs_device = fs_initialize(100, 30);
 	//ramfs_root = fs_dir_add_entry(ramfs_device, 0, "/dir", INODE_TYPE_DIR);
@@ -24,6 +27,9 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 	cls();
+	float a = 5123/2.3;
+	printf("here is a float %f\n", 3.123f);
+
 	print_greetings();
 	shell_main();
 }

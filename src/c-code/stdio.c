@@ -165,7 +165,7 @@ void printf(const char* format, ...)
 					putc(va_arg ( arguments, char ));
 					break;
 				case 'f':
-					//putf( va_arg ( arguments, float )); #FIXME
+					putf( va_arg ( arguments, double ));
 					break;
 				case 's':
 					puts(va_arg ( arguments, char* ));

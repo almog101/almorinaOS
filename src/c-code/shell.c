@@ -64,6 +64,7 @@ bool is_exp(const char* str)
 			as_digit = as_digit || isdigit(*str);
 			str++;
 		}
+	}
 	return true && as_digit;
 }
 

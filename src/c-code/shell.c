@@ -75,13 +75,13 @@ ONPUT:
 OUTPUT:
 - 
 */
-int shell_eval_math_exp(const char* expression)
+float shell_eval_math_exp(const char* expression)
 {
 	char exp[100] ={0};
 	strcpy(exp, expression);
 	strip_spaces(exp);
 
-	int nums[100] = {0};
+	float nums[100] = {0};
 	char ops[100] = {0};
 	int count = 0;
 	
@@ -109,7 +109,7 @@ int shell_eval_math_exp(const char* expression)
 		}
 
 		// save in n the result of a math expression
-		int n = 0;
+		float n = 0;
 		switch (ops[index]) 
 		{
 		case '-':
@@ -210,6 +210,9 @@ void echo(char** argv, int argc)
 					case SHELL_TYPE_INT:
 						printf("%d", *(int*)(curr->data));
 						break;
+					case SHELL_TYPE_FLOAT:
+						printf("%f", *(float*)(curr->data));
+						break;
 					case SHELL_TYPE_STRING:
 						printf("%s", curr->data);
 						break;
@@ -253,9 +256,21 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	// check if data is a math expression [or a number] & set node's data accordingly
 	if (is_exp(data))
 	{
-		node->data = malloc(sizeof(int));
-		*(int*)(node->data) = shell_eval_math_exp(data);
-		node->type = SHELL_TYPE_INT;
+		bool is_float = count(data, '/') > 0;
+		float num = shell_eval_math_exp(data);
+
+		if (is_float && num - (int)num != 0)
+		{
+			node->data = malloc(sizeof(float));
+			*(float*)(node->data) = num;
+			node->type = SHELL_TYPE_FLOAT;
+		}
+		else
+		{
+			node->data = malloc(sizeof(int));
+			*(int*)(node->data) = (int)num;
+			node->type = SHELL_TYPE_INT;
+		}
 	}
 	else
 	{
@@ -317,6 +332,9 @@ void vars(char** argv, int argc)
 				break;
 			case SHELL_TYPE_STRING:
 				printf("%s\n", curr->data);
+				break;
+			case SHELL_TYPE_FLOAT:
+				printf("%f\n", *(float*)curr->data);
 				break;
 		}
 		curr = curr->next;

@@ -198,5 +198,7 @@ void fgets(char* dest, int n)
 			else
 				dest[i++] = ch;
 		}
+		else
+			Sleep(10);
 	} while(i < n && ch != NEWLINE_CHAR);
 }

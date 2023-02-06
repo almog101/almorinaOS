@@ -43,7 +43,6 @@ void __attribute__ ((interrupt)) key_board_handler(struct interrupt_frame* frame
 
 void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
 {
-	putc('h');
     PIT_tick();
     pic_end_master();
 }

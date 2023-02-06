@@ -21,11 +21,8 @@ extern int sse_enable(void);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
-    PIT_set_divisor(2000);
+	sse_enable();
 	prepare_interrupts();
-	{
-	int sse = sse_enable();
-	}
 	initialize_memory(magic, addr);
 	scheduler_init();
 	ramfs_device = fs_initialize(100, 30);
@@ -34,15 +31,11 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 
-	//cls();
+	cls();
 	test_scheduler();
 	print_greetings();
 
-    for(int t = 0; t < 2000; t++){
-        putc('g');
-        Sleep(5);
-    }
-	//shell_main();
+	shell_main();
 }
 
 /// Activate interrupts.
@@ -59,7 +52,7 @@ void prepare_interrupts()
 	asm("lidt %0" : : "m" (idt_r));
 
 	remap_pic();
-	out_b(PIC1_DATA, 0b11111101);
+	out_b(PIC1_DATA, 0b11111100);
 	out_b(PIC2_DATA, 0b11111111);
 
 	asm ("sti");

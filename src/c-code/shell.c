@@ -14,6 +14,7 @@ extern shell_list_t* shell_variables = 0;
 
 extern reboot();
 
+/// Prints almorina os' title.
 void print_greetings()
 {
 	printf("Welcome to\n");
@@ -26,76 +27,91 @@ void print_greetings()
 	set_fg_color(DARKGREY);
 }
 
+/// Removes all space chars from s.
 void strip_spaces(char* s)
 {
 	const char* d = s;
-    do {
-        while (*d == ' ') {
+    do 
+	{
+    	while (*d == ' ')
             ++d;
-        }
     } while (*s++ = *d++);
 }
 
+/// Checks if c is one of the math operation (-, +, /, *).
 bool isop(char c)
 {
 	return ((c == '-') || (c == '+') || (c == '/') || (c == '*'));
 }
 
+/// Checks if c is a numeric char.
 bool isdigit(char c)
 {
-	return (c>='0') && (c<='9');
+	return (c >= '0') && (c <= '9');
 }
 
+/// Checks if the given string is math expression.
 bool is_exp(const char* str)
 {
 	bool as_digit = false;
 
 	while(*str != 0)
-		if (isop(*str) != true && isdigit(*str) != true && *str != ' ')
+	{
+		if ((isop(*str) != true) && (isdigit(*str) != true) && (*str != ' '))
 			return false;
 		else
 		{
 			as_digit = as_digit || isdigit(*str);
 			str++;
 		}
+	}
 	return true && as_digit;
 }
 
-int shell_eval_math_exp(const char* expression)
+/** TODO: add comments
+
+ONPUT:
+- 
+OUTPUT:
+- 
+*/
+float shell_eval_math_exp(const char* expression)
 {
 	char exp[100] ={0};
 	strcpy(exp, expression);
 	strip_spaces(exp);
 
-	int nums[100] = {0};
+	float nums[100] = {0};
 	char ops[100] = {0};
 	int count = 0;
 	
 	// parse expression to operators and numbers
 	char* p = exp;
-	for (int i = 0; i < sizeof(exp) && exp[i]; i++)
+	for (int i = 0; (i < sizeof(exp)) && exp[i]; i++)
 	{
 		if (isop(exp[i]))
 		{
-			ops[count] = exp[i];
-			exp[i] =0;
-			nums[count++ ] = atoi(p);
-			p = exp+i+1;
+			ops[count] = exp[i];		// add math operator to ops
+			exp[i] = 0;					// nullify the math operator in expression
+			nums[count++] = atoi(p);	// add the number before the math operator to nums
+			p = exp + i + 1;			// set p to the number after the math operator
 		}
 	}
 	nums[count++] = atoi(p);
 
-
 	while (count > 0)
 	{
 		int index = 0;
-		for (int i = 1; i<count-1; i++)
+		for (int i = 1; i < (count - 1); i++)
+		{
 			if ((ops[index] == '-' || ops[index] == '+') && (ops[i] == '*' || ops[i] == '/'))
 				index = i;
+		}
 
-
-		int n;
-		switch (ops[index]) {
+		// save in n the result of a math expression
+		float n = 0;
+		switch (ops[index]) 
+		{
 		case '-':
 			n = nums[index] - nums[index+1];
 			break;
@@ -108,7 +124,6 @@ int shell_eval_math_exp(const char* expression)
 				printf("Error: can't devide by 0!\n");
 				return 0;
 			}
-
 			n = nums[index] / nums[index+1];
 			break;
 		case '*':
@@ -133,14 +148,21 @@ int shell_eval_math_exp(const char* expression)
 	return *nums;
 }
 
-char *shell_combine_strings(char **str_array, uint64_t size) 
+/**
+Combine all the string in str_array to one string
+ONPUT:
+- array of strings
+- number of string to combine [?]
+OUTPUT:
+- combined string
+*/
+char* shell_combine_strings(char** str_array, uint64_t size) 
 {
 	uint64_t total_length = 0;
 
 	// Calculate the total length of the combined string
-	for (uint64_t i = 0; i < size; i++) {
-	total_length += strlen(str_array[i]) + 1;
-	}
+	for (uint64_t i = 0; i < size; i++) 
+		total_length += strlen(str_array[i]) + 1;
 	total_length--;
 
 	// Allocate a buffer for the combined string
@@ -148,32 +170,64 @@ char *shell_combine_strings(char **str_array, uint64_t size)
 
 	// Copy the strings into the combined string buffer
 	uint64_t pos = 0;
-	for (uint64_t i = 0; i < size; i++) {
-	uint64_t str_len = strlen(str_array[i]);
-	strncpy(combined_str + pos, str_array[i], str_len);
-	combined_str[pos+str_len] = ' ';
-	pos += str_len+1;
+	for (uint64_t i = 0; i < size; i++) 
+	{
+		uint64_t str_len = strlen(str_array[i]);
+		strncpy(combined_str + pos, str_array[i], str_len);
+		combined_str[pos+str_len] = ' ';
+		pos += str_len+1;
 	}
-
 	// Null-terminate the combined string
-	combined_str[total_length] = '\0';
+	combined_str[total_length] = 0;
 
 	return combined_str;
 }
 
+// self explanatory
 void echo(char** argv, int argc)
 {
 	/// TODO: add check if '\'' or '"' appear twice
 	/// TODO: add check if there is '\n' or '\t'
+	int num = 0;
+	char str[100] = {0};
+
 	for (int i = 1; i < argc; i++)
 	{
-		int len = strlen(argv[i]);
-		for(int j = 0; j < len; j++)
+		if(argv[i][0] == '$')
 		{
-			if(argv[i][j] != '\'' && argv[i][j] != '"')
-				putc(argv[i][j]);
+			char var_name[100] = {0};
+			int str_len = strlen(argv[i]);
+			strncpy(var_name, argv[i] + 1, str_len - 1);
+			var_name[str_len] = 0;
+
+			shell_list_t* curr = shell_variables;
+			while (curr)
+			{
+				if (strcmp(curr->name, var_name) == 0)
+				{
+					switch(curr->type)
+					{
+					case SHELL_TYPE_INT:
+						printf("%d", *(int*)(curr->data));
+						break;
+					case SHELL_TYPE_FLOAT:
+						printf("%f", *(float*)(curr->data));
+						break;
+					case SHELL_TYPE_STRING:
+						printf("%s", curr->data);
+						break;
+					}
+					putc(' ');
+				}
+				curr = curr->next;
+			}
 		}
-		putc(' ');
+
+		else
+		{
+			puts(argv[i]);
+			putc(' ');
+		}
 	}
 	putc('\n');
 }
@@ -202,9 +256,21 @@ void set_variable(shell_list_t* node, const char* name, const char* data)
 	// check if data is a math expression [or a number] & set node's data accordingly
 	if (is_exp(data))
 	{
-		node->data = malloc(sizeof(int));
-		*(int*)(node->data) = shell_eval_math_exp(data);
-		node->type = SHELL_TYPE_INT;
+		bool is_float = count(data, '/') > 0;
+		float num = shell_eval_math_exp(data);
+
+		if (is_float && num - (int)num != 0)
+		{
+			node->data = malloc(sizeof(float));
+			*(float*)(node->data) = num;
+			node->type = SHELL_TYPE_FLOAT;
+		}
+		else
+		{
+			node->data = malloc(sizeof(int));
+			*(int*)(node->data) = (int)num;
+			node->type = SHELL_TYPE_INT;
+		}
 	}
 	else
 	{
@@ -267,6 +333,9 @@ void vars(char** argv, int argc)
 			case SHELL_TYPE_STRING:
 				printf("%s\n", curr->data);
 				break;
+			case SHELL_TYPE_FLOAT:
+				printf("%f\n", *(float*)curr->data);
+				break;
 		}
 		curr = curr->next;
 	}
@@ -279,10 +348,10 @@ void exit(char** argv, int argc)
 }
 
 /**
-
+Print the tree of dir until level.
 INPUT:
-- 
-- 
+- directory to print from
+- when to stop printing
 OUTPUT:
 - none
 */
@@ -346,7 +415,7 @@ void mkdir(char** argv, int argc)
 		return;
 	}
 
-	int len;
+	int len = 0;
 	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
 	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
 	filename[len] = 0;
@@ -356,6 +425,14 @@ void mkdir(char** argv, int argc)
 	free(path);
 }
 
+/**
+
+INPUT:
+- 
+- 
+OUTPUT:
+- 
+*/
 fs_dir_entry* file_exist(char** argv, int argc)
 {
 	char* filename = shell_combine_strings(argv+1, argc-1);
@@ -425,7 +502,7 @@ void ls(char** argv, int argc)
 		return;
 	}
 
-	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	for (int i = 0; i < NUM_OF_BLOCKS_IN_INODE; i++)
 	{
 		if (dir->blocks[i] == 0)
 			continue;
@@ -499,16 +576,24 @@ void shell_execute(char** argv, int argc)
 	printf("invalid command!\n");
 }
 
-/* this function splits the command into its arguments 
- * and returns the number of them */
+/** TODO: complete this plz
+Split the command into its arguments & return the number of them 
+INPUT:
+- 
+-
+OUTPUT:
+- 
+*/
 int shell_parse(char* line, char*** argv)
 {
 	char* curr = line;
 	int argc = 1;
 
 	while(*curr)
+	{
 		if (*(curr++) == ' ')
 			argc++;
+	}
 
 	char** args = malloc(sizeof(char*) * argc);
 	char* start = line;
@@ -530,7 +615,6 @@ int shell_parse(char* line, char*** argv)
 	*argv = args;
 	return argc;
 }
-
 
 void shell_main()
 {

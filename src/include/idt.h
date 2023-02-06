@@ -31,3 +31,5 @@ struct __attribute__ ((__packed__)) idt_register
     uint16_t limit;
     uint64_t offset;
 } typedef idt_register;
+
+void idt_set_gate(void* handler, uint8_t entryOffset, uint8_t type_attr, uint8_t selector, idt_register* idtr);

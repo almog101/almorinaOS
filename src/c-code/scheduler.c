@@ -1,14 +1,19 @@
 #include "scheduler.h"
 #include <stdint.h>
 #include <stdio.h>
+
 #define PUSH(tos,val) (*(-- tos) = val)
 
 PCB_t *currentPCB;
 PCB_t pcbArray[MAX_TASKS];
 
+/** TODO: add comments
+initialize PCB array with 
+*/
 void scheduler_init(void) 
 {
-    for (int i = 0; i < MAX_TASKS; i ++) pcbArray[i].used = 0;
+    for (int i = 1; i < MAX_TASKS; i ++) 
+        pcbArray[i].used = 0;
 
     pcbArray[0].used = 1;
     pcbArray[0].tos = 0;
@@ -21,10 +26,17 @@ void scheduler_init(void)
 
 PCB_t *pcb_alloc(void)
 {
-    for (int i = 0; i < MAX_TASKS; i ++) {
-        if (pcbArray[i].used == 0) {
+    for (int i = 0; i < MAX_TASKS; i++) 
+    {
+        if (pcbArray[i].used == 0) 
+        {
             pcbArray[i].used = 1;
             pcbArray[i].tos = ((0x181 + i) << 12);  // also allocate a stack here
+            pcbArray[i].next = &pcbArray[0];
+
+            if (i != 0)
+                pcbArray[i-1].next = &pcbArray[i];
+
             return &pcbArray[i];
         }
     }
@@ -32,24 +44,24 @@ PCB_t *pcb_alloc(void)
     return (PCB_t *)0;
 }
 
-
 void pcb_free(PCB_t *pcb)
 {
-    if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) return;
+    if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) 
+        return;
     pcb->used = 0;
 }
 
-
 static void process_startup(void) 
 {
+    /// TODO: ??
 }
 
 PCB_t *process_create(void (*ent)())
 {
     PCB_t *rv = pcb_alloc();
 
-    if (!rv) return rv;
-
+    if (!rv) 
+        return rv;
 
     uint64_t *tos = (uint64_t*)rv->tos;
     PUSH(tos, (uint64_t)process_startup);  // startup function
@@ -71,30 +83,43 @@ PCB_t *C;
 
 void ProcessB(void)
 {
-    while (1) {
-        putc('B');
-        switch_to_task(C);
+    while (1)
+	{
+        for (int i = 0; i < 2; i++)
+        {
+            putc('B');
+        }
+        schedule();
     }
 }
 
 void ProcessC(void)
 {
-    while (1) {
+    while (1)
+	{
         putc('C');
-        switch_to_task(A);
+        schedule();
     }
 }
 
 void test_scheduler()
 {
+    scheduler_init();
+
     A = currentPCB;
     B = process_create(ProcessB);
     C = process_create(ProcessC);
+    printf("%x, %x, %x\n", A, B, C);
 
-	for (int i = 0; i<5; i++)
+	for (int i = 0; i < 2; i++)
 	{
         putc('A');
-        switch_to_task(B);
+        schedule();
     }
 	putc('\n');
+}
+
+void schedule()
+{
+    switch_to_task(currentPCB->next);
 }

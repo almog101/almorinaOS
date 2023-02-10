@@ -4,24 +4,27 @@
 
 #define PUSH(tos,val) (*(-- tos) = val)
 
-PCB_t *currentPCB;
-PCB_t pcbArray[MAX_TASKS];
+PCB_t* currentPCB;
+PCB_t  pcbArray[MAX_TASKS];
+PCB_t* startOfPcbArr;
+PCB_t* endOfPcbArr = 0;
 
 /** TODO: add comments
 initialize PCB array with 
 */
 void scheduler_init(void) 
 {
-    for (int i = 1; i < MAX_TASKS; i ++) 
+    for (int i = 1; i < MAX_TASKS; i ++)
         pcbArray[i].used = 0;
 
     pcbArray[0].used = 1;
     pcbArray[0].tos = 0;
     pcbArray[0].virtAddr = GetCR3();
-    pcbArray[0].state = 0;
+    pcbArray[0].state = RUNNING_STATE;
     pcbArray[0].next = (PCB_t *)0;
 
     currentPCB = &pcbArray[0];
+    startOfPcbArr = &pcbArray[0];
 }
 
 PCB_t *pcb_alloc(void)
@@ -33,10 +36,12 @@ PCB_t *pcb_alloc(void)
             pcbArray[i].used = 1;
             pcbArray[i].tos = ((0x181 + i) << 12);  // also allocate a stack here
             pcbArray[i].next = &pcbArray[0];
+            pcbArray[i].state = READY_STATE;
 
             if (i != 0)
                 pcbArray[i-1].next = &pcbArray[i];
 
+            endOfPcbArr = &pcbArray[i];
             return &pcbArray[i];
         }
     }
@@ -85,10 +90,9 @@ void ProcessB(void)
 {
     while (1)
 	{
-        for (int i = 0; i < 2; i++)
-        {
-            putc('B');
-        }
+        putc('B');
+        printf("\n[b: %d, ", currentPCB->state);
+        printf("c: %d] ", currentPCB->next->state);
         schedule();
     }
 }
@@ -98,6 +102,8 @@ void ProcessC(void)
     while (1)
 	{
         putc('C');
+        printf("\n[c: %d, ", currentPCB->state);
+        printf("a: %d] ", currentPCB->next->state);
         schedule();
     }
 }
@@ -109,14 +115,14 @@ void test_scheduler()
     A = currentPCB;
     B = process_create(ProcessB);
     C = process_create(ProcessC);
-    printf("%x, %x, %x\n", A, B, C);
 
 	for (int i = 0; i < 2; i++)
 	{
         putc('A');
+        printf("\n[a: %d, ", currentPCB->state);
+        printf("b: %d] ", currentPCB->next->state);
         schedule();
     }
-	putc('\n');
 }
 
 void schedule()

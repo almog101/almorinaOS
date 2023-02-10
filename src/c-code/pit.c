@@ -3,14 +3,14 @@
 #include "io.h"
 #include <stdio.h>
 
-static double time_since_boot = 0;
+static double pit_counter = 0;
 static const uint64_t base_frequency = 1193182;
 
 uint16_t PIT_divisor = 65535;
 
 void Sleepd(double seconds){
-	double start_time = time_since_boot;
-	while (time_since_boot < start_time + seconds){
+	double start_time = pit_counter;
+	while (pit_counter < start_time + seconds){
 		asm("hlt");
 	}
 }
@@ -36,5 +36,13 @@ void PIT_set_frequency(uint64_t frequency) {
 }
 
 void PIT_tick() {
-	time_since_boot += 1 / (double)PIT_get_frequency();
+	pit_counter += 1 / (double)PIT_get_frequency();
+}
+
+void PIT_set_counter(double amount_seconds) {
+	pit_counter = amount_seconds;
+}
+
+double PIT_get_counter() {
+	return pit_counter;
 }

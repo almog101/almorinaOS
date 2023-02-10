@@ -1,29 +1,33 @@
 #include "scheduler.h"
 #include <stdint.h>
 #include <stdio.h>
+#include "pit.h"
+
 #define PUSH(tos,val) (*(-- tos) = val)
 
 PCB_t *currentPCB;
 PCB_t pcbArray[MAX_TASKS];
+static double lastCounter;
 
 void scheduler_init(void) 
 {
-    for (int i = 0; i < MAX_TASKS; i ++) pcbArray[i].used = 0;
+    for (int i = 0; i < MAX_TASKS; i ++) pcbArray[i].time_used = 0;
 
-    pcbArray[0].used = 1;
+    pcbArray[0].time_used = 1;
     pcbArray[0].tos = 0;
     pcbArray[0].virtAddr = GetCR3();
     pcbArray[0].state = 0;
     pcbArray[0].next = (PCB_t *)0;
 
     currentPCB = &pcbArray[0];
+    lastCounter = PIT_get_counter();
 }
 
 PCB_t *pcb_alloc(void)
 {
     for (int i = 0; i < MAX_TASKS; i ++) {
-        if (pcbArray[i].used == 0) {
-            pcbArray[i].used = 1;
+        if (pcbArray[i].time_used == 0) {
+            pcbArray[i].time_used = 1;
             pcbArray[i].tos = ((0x181 + i) << 12);  // also allocate a stack here
             return &pcbArray[i];
         }
@@ -36,7 +40,7 @@ PCB_t *pcb_alloc(void)
 void pcb_free(PCB_t *pcb)
 {
     if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) return;
-    pcb->used = 0;
+    pcb->time_used = 0;
 }
 
 
@@ -64,6 +68,14 @@ PCB_t *process_create(void (*ent)())
 
     return rv;
 }
+
+void process_update_time_used() {
+    double counter = lastCounter;
+    lastCounter = PIT_get_counter();
+    currentPCB->time_used += (lastCounter - counter);
+}
+
+/*       -----Testing-----           */
 
 PCB_t *A;
 PCB_t *B;

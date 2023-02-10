@@ -20,8 +20,6 @@ static int line_len = 1;
 void keyboard_handler(uint8_t scancode)
 {
   char ascii = keyboard_scancode_to_keycode(scancode);
-  //if((int)ascii != 0)
-  //  printf("[%d]", (int)ascii);
 
   if(ascii == CAPS_LOCK)
   {
@@ -29,7 +27,7 @@ void keyboard_handler(uint8_t scancode)
     return;
   }
 
-  if(ascii == LEFT_SHIFT || ascii == RIGHT_SHIFT)
+  if(ascii == LEFT_SHIFT)
   {
     is_shift = true;
     return;

@@ -1,20 +1,21 @@
 global          switch_to_task          ;; void SwitchToTask(PCB_t *task) __attributes__((cdecl));
 global          GetCR3                  ;; unsigned int GetCR3(void);
 
-extern      currentPCB
-extern 	    switch_to_task
+extern          currentPCB
+extern 	        switch_to_task
+extern          end_of_ready_list
 
 TOS     equ     0
 VAS     equ     8
+NXS     equ     16
 STS     equ     24
 
+READY_STATE     equ     0
 RUNNING_STATE   equ     1
 WAITING_STATE   equ     2
 
 [bits 64]
 switch_to_task:
-
-        ;; [save previous task's state]
 
         push    rbx
         push    rsi
@@ -24,18 +25,20 @@ switch_to_task:
         mov     rdi, [currentPCB]       ;; 'rdi' = adress of previous tasks PCB
         mov     [rdi + TOS], rsp        ;; save the top of the stack
 
-        ;; -- load the next task's state
-
         push    rax                     ;; save rax
         mov     rax, [rdi + STS]
         mov     rbx, RUNNING_STATE
         cmp     rax, rbx                ;; check if current process's state is running state
-        jne     .cont
+        jne     .not_running_state
         
-        mov     rbx, WAITING_STATE
+        mov     rbx, READY_STATE
         mov     [rdi + STS], rbx        ;; save waiting state in current process's state
 
-.cont:
+        mov     rax, [end_of_ready_list]
+        mov     [rax + NXS], rdi
+        mov     [end_of_ready_list], rdi
+
+.not_running_state:
 
         pop     rax                     ;; get back rax value
 	mov     rbp, rax

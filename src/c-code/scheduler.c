@@ -1,13 +1,16 @@
 #include "scheduler.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define PUSH(tos,val) (*(-- tos) = val)
 
 PCB_t* currentPCB;
 PCB_t  pcbArray[MAX_TASKS];
-PCB_t* startOfPcbArr;
-PCB_t* endOfPcbArr = 0;
+PCB_t* start_of_ready_list = 0;
+PCB_t* end_of_ready_list;
+
+bool is_first = true;
 
 /** TODO: add comments
 initialize PCB array with 
@@ -24,7 +27,8 @@ void scheduler_init(void)
     pcbArray[0].next = (PCB_t *)0;
 
     currentPCB = &pcbArray[0];
-    startOfPcbArr = &pcbArray[0];
+    start_of_ready_list = &pcbArray[0];
+    end_of_ready_list = &pcbArray[0];
 }
 
 PCB_t *pcb_alloc(void)
@@ -38,10 +42,15 @@ PCB_t *pcb_alloc(void)
             pcbArray[i].next = &pcbArray[0];
             pcbArray[i].state = READY_STATE;
 
-            if (i != 0)
-                pcbArray[i-1].next = &pcbArray[i];
-
-            endOfPcbArr = &pcbArray[i];
+            if(is_first)
+            {
+                start_of_ready_list = &pcbArray[i];
+                end_of_ready_list = &pcbArray[i];
+                is_first = false;
+            }
+            end_of_ready_list->next = &pcbArray[i];
+            end_of_ready_list = &pcbArray[i];
+            
             return &pcbArray[i];
         }
     }
@@ -91,8 +100,6 @@ void ProcessB(void)
     while (1)
 	{
         putc('B');
-        printf("\n[b: %d, ", currentPCB->state);
-        printf("c: %d] ", currentPCB->next->state);
         schedule();
     }
 }
@@ -102,8 +109,6 @@ void ProcessC(void)
     while (1)
 	{
         putc('C');
-        printf("\n[c: %d, ", currentPCB->state);
-        printf("a: %d] ", currentPCB->next->state);
         schedule();
     }
 }
@@ -119,13 +124,16 @@ void test_scheduler()
 	for (int i = 0; i < 2; i++)
 	{
         putc('A');
-        printf("\n[a: %d, ", currentPCB->state);
-        printf("b: %d] ", currentPCB->next->state);
         schedule();
     }
 }
 
 void schedule()
 {
-    switch_to_task(currentPCB->next);
+    if(start_of_ready_list != 0)
+    {
+        PCB_t* task = start_of_ready_list;
+        start_of_ready_list = start_of_ready_list->next;
+        switch_to_task(task);
+    }
 }

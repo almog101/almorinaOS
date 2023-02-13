@@ -4,9 +4,17 @@
 #include "pit.h"
 
 #define PUSH(tos,val) (*(-- tos) = val)
-
+// Current Running trhead
 PCB_t *currentPCB;
+
+// All threads
 PCB_t pcbArray[MAX_TASKS];
+
+
+// The list of sleeping tasks
+PCB_t *sleepingListHead;
+PCB_t *sleepingListTail;
+
 static double lastCounter;
 
 void scheduler_init(void) 
@@ -16,7 +24,7 @@ void scheduler_init(void)
     pcbArray[0].time_used = 1;
     pcbArray[0].tos = 0;
     pcbArray[0].virtAddr = GetCR3();
-    pcbArray[0].state = 0;
+    pcbArray[0].state = RUNNING;
     pcbArray[0].next = (PCB_t *)0;
 
     currentPCB = &pcbArray[0];
@@ -65,9 +73,43 @@ PCB_t *process_create(void (*ent)())
 
     rv->tos = (uint64_t)tos;
     rv->virtAddr = GetCR3();
+    rv->sleep_time = (unsigned long)-1;
 
     return rv;
 }
+
+void add_sleeping_process(PCB_t *task)
+{
+    if (!task) return;
+
+    task->state = SLEEPING;
+
+    if (sleepingListHead == (PCB_t *)0) {
+        sleepingListHead = sleepingListTail = task;
+    } else {
+        sleepingListTail->next = task;
+        sleepingListTail = task;
+    }
+}
+
+void SleepUntil(unsigned long when)
+{
+    //LockAndPostpone();
+
+    if (when < PIT_get_counter()) {
+        //UnlockAndSchedule();
+        return;
+    }
+
+    currentPCB->sleep_time = when;
+    add_sleeping_process(currentPCB);
+
+    //UnlockAndSchedule();    // -- this is OK because the scheduler structures are in order; worst case 
+                            //    is a task change to itself.
+    //BlockProcess(SLEEPING);
+}
+
+
 
 void process_update_time_used() {
     double counter = lastCounter;

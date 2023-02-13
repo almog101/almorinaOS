@@ -4,12 +4,20 @@
 #include <stdint.h>
 #define MAX_TASKS       256
 
+typedef enum {
+    RUNNING = 0,
+    READY = 1,
+    PAUSED = 2,
+    SLEEPING = 3,
+} ProcessState_t;
+
 typedef struct PCB_t {
     uint64_t tos;
     uint64_t virtAddr;
     struct PCB_t *next;
     int state;
     int time_used;
+	unsigned int sleep_time;
 } PCB_t;
 
 

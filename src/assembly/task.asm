@@ -26,9 +26,9 @@ switch_to_task:
         mov     [rdi + TOS], rsp        ;; save the top of the stack
 
         push    rax                     ;; save rax
-        mov     rax, [rdi + STS]
-        mov     rbx, RUNNING_STATE
-        cmp     rax, rbx                ;; check if current process's state is running state
+        mov     al, [rdi + STS]
+        mov     bl, RUNNING_STATE
+        cmp     al, bl                ;; check if current process's state is running state
         jne     .not_running_state
         
         mov     rbx, READY_STATE

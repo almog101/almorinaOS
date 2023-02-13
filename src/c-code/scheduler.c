@@ -116,7 +116,7 @@ PCB_t *C;
 void ProcessB(void)
 {
     while (1)
-	{
+    {
         putc('B');
         schedule();
     }
@@ -125,7 +125,7 @@ void ProcessB(void)
 void ProcessC(void)
 {
     while (1)
-	{
+    {
         putc('C');
         schedule();
     }
@@ -149,7 +149,7 @@ void test_scheduler()
 void schedule()
 {
     lock_scheduler();
-    if(start_of_ready_list != 0)
+    if (start_of_ready_list != 0)
     {
         PCB_t* task = start_of_ready_list;
         start_of_ready_list = start_of_ready_list->next;

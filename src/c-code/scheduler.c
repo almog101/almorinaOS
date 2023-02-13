@@ -11,6 +11,24 @@ PCB_t* start_of_ready_list = 0;
 PCB_t* end_of_ready_list;
 
 bool is_first = true;
+int IRQ_disable_counter = 0;
+ 
+void lock_scheduler(void) 
+{
+#ifndef SMP
+    __asm__("cli");
+    IRQ_disable_counter++;
+#endif
+}
+ 
+void unlock_scheduler(void) 
+{
+#ifndef SMP
+    IRQ_disable_counter--;
+    if (IRQ_disable_counter == 0)
+        __asm__("sti");
+#endif
+}
 
 /** TODO: add comments
 initialize PCB array with 
@@ -130,10 +148,12 @@ void test_scheduler()
 
 void schedule()
 {
+    lock_scheduler();
     if(start_of_ready_list != 0)
     {
         PCB_t* task = start_of_ready_list;
         start_of_ready_list = start_of_ready_list->next;
         switch_to_task(task);
     }
+    unlock_scheduler();
 }

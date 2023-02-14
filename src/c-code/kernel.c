@@ -10,6 +10,7 @@
 #include "fs.h"
 #include "scheduler.h"
 #include "pit.h"
+#include "pci.h"
 
 idt_register idt_r;
 extern idt_descriptor_entry _idt[256];
@@ -21,6 +22,13 @@ extern int sse_enable(void);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
+	{
+		RSDPDescriptor* rsdp = find_rsdp();
+		if (rsdp)
+			printf("Found rsdp 0x%x, addr: 0x%x\n", rsdp, rsdp->RsdtAddress);
+		else
+			puts("not found :(\n");
+	}
 	sse_enable();
 	prepare_interrupts();
 	initialize_memory(magic, addr);
@@ -31,7 +39,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 
-	cls();
+	//cls();
 	test_scheduler();
 	print_greetings();
 

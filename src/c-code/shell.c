@@ -12,6 +12,8 @@ const char almorina_title_II[] = {0x2F, 0x20, 0x2F, 0x5F, 0x5C, 0x20, 0x5C, 0x20
 const char almorina_title_III[] = {0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x28, 0x5F, 0x29, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x28, 0x5F, 0x7C, 0x20, 0x5C, 0x20, 0x5C, 0x5F, 0x2F, 0x20, 0x2F, 0x5C, 0x5F, 0x5F, 0x2F, 0x20, 0x2F, '\n', 0x5C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x2F, 0x5F, 0x7C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x7C, 0x5C, 0x5F, 0x5F, 0x5F, 0x2F, 0x7C, 0x5F, 0x7C, 0x20, 0x20, 0x7C, 0x5F, 0x7C, 0x5F, 0x7C, 0x20, 0x7C, 0x5F, 0x7C, 0x5C, 0x5F, 0x5F, 0x2C, 0x5F, 0x7C, 0x5C, 0x5F, 0x5F, 0x5F, 0x2F, 0x5C, 0x5F, 0x5F, 0x5F, 0x5F, 0x2F, '\n', 0};
 extern shell_list_t* shell_variables = 0;
 
+fs_inode_t* current_dir = 0;
+
 extern reboot();
 
 /// Prints almorina os' title.
@@ -380,14 +382,14 @@ void print_fs_tree(fs_inode_t* dir, int level)
 // self explanatory
 void tree(char** argv, int argc)
 {
-	print_fs_tree(ramfs_root, 0);
+	print_fs_tree(current_dir, 0);
 }
 
 // self explanatory
 void touch(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, current_dir, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -408,7 +410,7 @@ void touch(char** argv, int argc)
 void mkdir(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, current_dir, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -425,50 +427,37 @@ void mkdir(char** argv, int argc)
 	free(path);
 }
 
-/**
-
-INPUT:
-- 
-- 
-OUTPUT:
-- 
-*/
-fs_dir_entry* file_exist(char** argv, int argc)
+fs_dir_entry* find_file(char** argv, int argc)
 {
-	char* filename = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = ramfs_root;
-	fs_dir_entry* file = -1;
-
-	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	char* path = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, current_dir, path);
+	if (dir == 0)
 	{
-		if (dir->blocks[i] == 0)
-			continue;
-
-		for (int j= 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
-		{
-			fs_dir_entry* ent = dir->blocks[i] + j;
-			if (strcmp(ent->name, filename) == 0)
-			{
-				file = ent;
-				goto check;
-			}
-		}
+		puts("path doesnt exist!\n");
+		return 0;
 	}
 
-	check:
-	if (file == -1)
-		puts("file doesn't exist\n");
-	free(filename);
+	int len = 0;
+	char filename[FS_MAX_FILENAME_SIZE + 1] = {0};
+	strncpy(filename, fs_extract_filename_from_path(path, &len), len);
+	filename[len] = 0;
+	fs_inode_t* file = fs_get_inode_by_filename(dir, filename);
 
+	if (file == 0) {
+		printf("no file '%s' in given directory!\n", filename);
+		return 0;
+	}
+
+	free(path);
 	return file;
 }
 
 // self explanatory
 void edit(char** argv, int argc)
 {
-	fs_dir_entry* file = file_exist(argv, argc);
+	fs_dir_entry* file = find_file(argv, argc);
 
-	if (file == -1)
+	if (file == 0)
 		return;
 
 	puts("Enter new file contents: ");
@@ -480,9 +469,9 @@ void edit(char** argv, int argc)
 // self explanatory
 void cat(char** argv, int argc) // change
 {
-	fs_dir_entry* file = file_exist(argv, argc);
+	fs_dir_entry* file = find_file(argv, argc);
 
-	if (file == -1)
+	if (file == 0)
 		return;
 
 	char* data = fs_inode_get_data(ramfs_device, file->inode);
@@ -495,7 +484,7 @@ void ls(char** argv, int argc)
 {
 	/// TODO: add '/' to the end of a directory
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, current_dir, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -515,6 +504,15 @@ void ls(char** argv, int argc)
 				printf("%s\n", ent->name);
 		}
 	}
+}
+
+void cd(char** argv, int argc)
+{
+	fs_inode_t* file = find_file(argv, argc);
+	if (!file)
+		return;
+
+	current_dir = file;
 }
 
 void pwd(char** argv, int argc)
@@ -538,7 +536,8 @@ struct shell_command shell_callback[] = {
 	{"edit",	2,			edit},
 	{"cat",		2,			cat},
 	{"ls",		1,			ls},
-	{"pwd",		1,			pwd}
+	{"pwd",		1,			pwd},
+	{"cd",		2,			cd}
 };
 
 // self explanatory
@@ -620,6 +619,7 @@ void shell_main()
 {
 	char line[200] = {0};
 	variables_push("pwd", "/root");
+	current_dir = ramfs_root;
 
 	do 
 	{

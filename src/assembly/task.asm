@@ -12,7 +12,6 @@ STS     equ     24
 
 READY_STATE     equ     0
 RUNNING_STATE   equ     1
-WAITING_STATE   equ     2
 
 [bits 64]
 switch_to_task:
@@ -47,8 +46,8 @@ switch_to_task:
         mov     rsp, [rbp + TOS]        ;; load the next process's stack
         mov     rax, [rbp + VAS]        ;; load the next process's virtual address space
 
-        mov     rbx, RUNNING_STATE
-        mov     [rbp + STS], rbx        ;; save running state in next process's state
+        mov     bl, RUNNING_STATE
+        mov     [rbp + STS], bl        ;; save running state in next process's state
 
         ;; -- fix tss.esp0 here
 

@@ -7,7 +7,7 @@
 
 #define READY_STATE     0
 #define RUNNING_STATE   1
-#define WAITING_STATE   2
+#define PAUSED          2
 
 // Process Control Block
 typedef struct PCB_t 

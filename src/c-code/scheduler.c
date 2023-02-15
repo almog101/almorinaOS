@@ -1,3 +1,5 @@
+// cooperative round robin scheduler 
+
 #include "scheduler.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -28,6 +30,27 @@ void unlock_scheduler(void)
     if (IRQ_disable_counter == 0)
         __asm__("sti");
 #endif
+}
+
+void block_task(int reason_for_waiting)
+{
+    lock_scheduler();
+    currentPCB->state = reason_for_waiting;
+    schedule();
+    unlock_scheduler();
+}
+
+void unblock_task(PCB_t* task)
+{
+    lock_scheduler();
+    if (start_of_ready_list == 0)
+        switch_to_task(task);
+    else
+    {
+        end_of_ready_list->next = task;
+        end_of_ready_list = task;
+    }
+    unlock_scheduler();
 }
 
 /** TODO: add comments
@@ -109,16 +132,21 @@ PCB_t *process_create(void (*ent)())
     return rv;
 }
 
-PCB_t *A;
-PCB_t *B;
-PCB_t *C;
+PCB_t* A;
+PCB_t* B;
+PCB_t* C;
+PCB_t* D;
 
 void ProcessB(void)
 {
     while (1)
     {
         putc('B');
-        schedule();
+        block_task(PAUSED);
+
+        // lock_scheduler();
+        // schedule();
+        // unlock_scheduler();
     }
 }
 
@@ -127,7 +155,21 @@ void ProcessC(void)
     while (1)
     {
         putc('C');
+        lock_scheduler();
         schedule();
+        unlock_scheduler();
+    }
+}
+void ProcessD(void)
+{
+    while (1)
+    {
+        putc('D');
+        unblock_task(B);
+
+        lock_scheduler();
+        schedule();
+        unlock_scheduler();
     }
 }
 
@@ -138,22 +180,24 @@ void test_scheduler()
     A = currentPCB;
     B = process_create(ProcessB);
     C = process_create(ProcessC);
+    D = process_create(ProcessD);
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 4; i++)
 	{
         putc('A');
+        lock_scheduler();
         schedule();
+        unlock_scheduler();
+        putc('\n');
     }
 }
 
 void schedule()
 {
-    lock_scheduler();
     if (start_of_ready_list != 0)
     {
         PCB_t* task = start_of_ready_list;
         start_of_ready_list = start_of_ready_list->next;
         switch_to_task(task);
     }
-    unlock_scheduler();
 }

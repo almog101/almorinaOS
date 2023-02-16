@@ -4,16 +4,16 @@ C_OBJS := $(patsubst src/c-code/%.c, bin/%.o,$(C_SRC))
 ASM_SRC := $(wildcard src/assembly/*.asm)
 ASM_OBJS := $(patsubst src/assembly/%.asm, bin/%.o,$(ASM_SRC))
 
-CC=x86_64-linux-gnu-gcc
-LD=x86_64-linux-gnu-ld
 
 
-CC_EXISTS := $(shell command -v $(CC) 2> /dev/null)
+CC_EXISTS := $(shell command -v x86_64-elf-gcc 2> /dev/null)
 
-all:
-ifndef CC_EXISTS # x86_64-linux-gnu-gcc isn't installed
-CC=x86_64-elf-gcc
-LD=x86_64-elf-ld
+ifndef CC_EXISTS
+	CC=x86_64-linux-gnu-gcc
+	LD=x86_64-linux-gnu-ld
+else
+	CC=x86_64-elf-gcc
+	LD=x86_64-elf-ld
 endif
 
 all: build
@@ -50,6 +50,9 @@ run-debug:
 
 run-gdb:
 	gdb -tui -ex "target remote localhost:1234" -ex "set disassembly-flavor intel" -ex "symbol-file bin/kernel.sym"
+
+run-gdb-gui:
+	gf2 -ex "target remote localhost:1234" -ex "set disassembly-flavor intel" -ex "symbol-file bin/kernel.sym"
 
 clean:
 	rm -rf bin iso/boot/kernel.bin

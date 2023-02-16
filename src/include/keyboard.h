@@ -8,7 +8,11 @@
 #define NEWLINE_CHAR '\n'
 #define BLANK_CHAR ' '
 
-char key_scancode_to_keycode(uint8_t scancode);
+#define LEFT_SHIFT 15
+#define RIGHT_SHIFT 15
+#define CAPS_LOCK 58
+
+void keyboard_handler(uint8_t scancode);
 char keyboard_getch();
 
 #endif

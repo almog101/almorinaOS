@@ -27,3 +27,11 @@ uint64_t get_offset(idt_descriptor_entry* descriptor)
 
     return offset;
 }
+
+void idt_set_gate(void* handler, uint8_t entryOffset, uint8_t type_attr, uint8_t selector, idt_register* idtr){
+	idt_descriptor_entry* interrupt = (idt_descriptor_entry*)(idtr->offset + entryOffset * sizeof(idt_descriptor_entry));
+	set_offset(interrupt, (uint64_t)handler);
+	interrupt->type_attr = IDT_TA_InterruptGate;
+	interrupt->selector = 0x08;
+}
+

@@ -3,6 +3,7 @@
 ; this is the header [duh]
 
 section .multiboot_header
+
 header_start:
 	dd 0xe85250d6		; magic number that is meant for multiboot2
 	dd 0 				; number to specify  what mode to enter

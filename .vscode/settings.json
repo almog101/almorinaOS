@@ -1,8 +1,17 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
+        "cstdio": "c",
+        "cstdlib": "c",
         "idt.h": "c",
         "stdio.h": "c",
-        "keyboard.h": "c"
+        "stdint.h": "c",
+        "string.h": "c",
+        "stdbool.h": "c",
+        "memory.h": "c",
+        "shell.h": "c",
+        "mmap.h": "c",
+        "interrupts.h": "c",
+        "vga.h": "c",
+        "common_defines.h": "c"
     }
-}

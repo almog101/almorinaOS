@@ -198,13 +198,11 @@ start:
 	call setup_page_tables
 	call enable_paging
 
-	;load the gdt to its register
-	lgdt [gdt64.pointer]
-
-popy:
 	pop ebx
 	pop eax
 
+	;load the gdt to its register
+	lgdt [gdt64.pointer]
 	jmp gdt64.code_segment:long_mode_start
 
 	hlt
@@ -219,8 +217,8 @@ section .text
 
 long_mode_start:
 	
-	mov rdi, rax
-	mov rsi, rbx
+	mov rdi, rax ;
+	mov rsi, rbx ;
 
     ;load null into all data segment registers
 	mov ax, 0

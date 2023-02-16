@@ -7,7 +7,7 @@
 #include "keyboard.h"
 
 static color16_t bg_color = BLACK;
-static color16_t fg_color = LIGHTRED;
+static color16_t fg_color = LIGHTGREY;
 
 void scroll(cursor_t* curr)
 {
@@ -25,6 +25,11 @@ void scroll(cursor_t* curr)
 		curr->y = SCREEN_HEIGHT-1;
 		curr->x =0;
 	}
+}
+
+void set_fg_color(int color)
+{
+	fg_color = color;
 }
 
 void putc(char c)
@@ -119,6 +124,23 @@ void putd(int n)
 	putc('0'+n);
 }
 
+void putf(float f) {
+	int i, k, flag = 0;
+    putd((int)f);
+
+	f -= (int)f;
+    if (f > 0) 
+	{
+        putc('.');
+        for (k = 0; k < 6; k++) 
+		{
+            f *= 10;
+            putc((int)f % 10 + '0');
+            f -= (int)f;
+        }
+    }
+}
+
 void printf(const char* format, ...)
 {
 	va_list arguments;                     
@@ -142,11 +164,14 @@ void printf(const char* format, ...)
 				case 'c':
 					putc(va_arg ( arguments, char ));
 					break;
+				case 'f':
+					putf( va_arg ( arguments, double ));
+					break;
 				case 's':
 					puts(va_arg ( arguments, char* ));
 					break;
 				default:
-					break;
+					i--;
 			}
 			i++;
 		}
@@ -159,15 +184,21 @@ void printf(const char* format, ...)
 
 void fgets(char* dest, int n)
 {
-	char temp = keyboard_getch(), ch =temp;
-	int i =0;
+	char ch = keyboard_getch();
+	int i = 0;
+
 	do
 	{
 		ch = keyboard_getch();
-		if (ch != temp && ch)
+		
+		if (ch)
 		{
-			temp = ch;
-			dest[i++] = ch;
+			if(ch == '\b')
+				i--;
+			else
+				dest[i++] = ch;
 		}
-	} while(i<n && ch != NEWLINE_CHAR);
+		else
+			Sleep(10);
+	} while(i < n && ch != NEWLINE_CHAR);
 }

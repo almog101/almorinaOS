@@ -19,6 +19,7 @@ void __attribute__ ((interrupt)) page_fault_handler(struct interrupt_frame* fram
 void __attribute__ ((interrupt)) zero_devision_handler(struct interrupt_frame* frame);
 void __attribute__ ((interrupt)) key_board_handler(struct interrupt_frame* frame);
 void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame);
+void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame);
 
 void remap_pic();
 void pic_end_master();

@@ -19,6 +19,7 @@ void prepare_interrupts();
 
 extern int sse_enable(void);
 
+extern void syscall(uint64_t num, uint64_t val);
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	sse_enable();
@@ -32,6 +33,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 
 
 	cls();
+	syscall(0x12, 0x99);
 	test_scheduler();
 	print_greetings();
 
@@ -48,6 +50,7 @@ void prepare_interrupts()
 	idt_set_gate((void*)zero_devision_handler, 0x0, IDT_TA_InterruptGate, 0x08, &idt_r);
 	idt_set_gate((void*)key_board_handler, 0x21, IDT_TA_InterruptGate, 0x08, &idt_r);
     idt_set_gate((void*)PIT_tick_handler, 0x20, IDT_TA_InterruptGate, 0x08, &idt_r);
+    idt_set_gate((void*)syscall_handler, 0x80, IDT_TA_InterruptGate, 0x08, &idt_r);
 
 	asm("lidt %0" : : "m" (idt_r));
 

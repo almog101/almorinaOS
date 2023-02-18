@@ -26,6 +26,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	prepare_interrupts();
 	initialize_memory(magic, addr);
 	scheduler_init();
+	initialize_syscalls();
 	ramfs_device = fs_initialize(100, 30);
 	//ramfs_root = fs_dir_add_entry(ramfs_device, 0, "/dir", INODE_TYPE_DIR);
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
@@ -33,7 +34,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 
 
 	cls();
-	syscall(0x12, 0x99);
+	syscall(22, 99);
 	test_scheduler();
 	print_greetings();
 

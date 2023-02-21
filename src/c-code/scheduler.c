@@ -15,6 +15,36 @@ PCB_t* end_of_ready_list;
 
 bool is_first = true;
 int IRQ_disable_counter = 0;
+int postponed_tasks_counter = 0;
+int postponed_tasks_flag = 0;
+
+void lock_task(void)
+{
+#ifndef SMP
+    __asm__("cli");
+    IRQ_disable_counter++;
+    postponed_tasks_counter++;
+#endif
+}
+
+void unlock_task(void)
+{
+#ifndef SMP
+    postponed_tasks_counter--;
+
+    if(postponed_tasks_counter == 0)
+    {
+        if(postponed_tasks_flag != 0) 
+        {
+            postponed_tasks_flag = 0;
+            schedule();
+        }
+    }
+    IRQ_disable_counter--;
+    if(IRQ_disable_counter == 0)
+        __asm__("sti");
+#endif
+}
  
 void lock_scheduler(void) 
 {
@@ -194,6 +224,12 @@ void test_scheduler()
 
 void schedule()
 {
+    if(postponed_tasks_counter != 0)
+    {
+        postponed_tasks_flag = 1;
+        return;
+    }
+
     if (start_of_ready_list != 0)
     {
         PCB_t* task = start_of_ready_list;

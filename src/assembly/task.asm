@@ -4,6 +4,8 @@ global          GetCR3                  ;; unsigned int GetCR3(void);
 extern          currentPCB
 extern 	        switch_to_task
 extern          end_of_ready_list
+extern          postponed_tasks_counter
+extern          postponed_tasks_flag
 
 TOS     equ     0
 VAS     equ     8
@@ -25,6 +27,14 @@ switch_to_task:
         mov     [rdi + TOS], rsp        ;; save the top of the stack
 
         push    rax                     ;; save rax
+
+        cmp     dword [postponed_tasks_counter], 0
+        je      .no_postponed_tasks
+        mov     dword [postponed_tasks_flag], 1
+        ret
+
+.no_postponed_tasks:
+
         mov     al, [rdi + STS]
         mov     bl, RUNNING_STATE
         cmp     al, bl                ;; check if current process's state is running state

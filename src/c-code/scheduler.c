@@ -110,7 +110,7 @@ void scheduler_init(void)
     for (int i = 1; i < MAX_TASKS; i ++)
         pcbArray[i].used = 0;
 
-    pcbArray[0].used = 1;
+    pcbArray[0].time_used = 1;
     pcbArray[0].tos = 0;
     pcbArray[0].virtAddr = GetCR3();
     pcbArray[0].state = RUNNING_STATE;
@@ -123,11 +123,9 @@ void scheduler_init(void)
 
 PCB_t *pcb_alloc(void)
 {
-    for (int i = 0; i < MAX_TASKS; i++) 
-    {
-        if (pcbArray[i].used == 0) 
-        {
-            pcbArray[i].used = 1;
+    for (int i = 0; i < MAX_TASKS; i ++) {
+        if (pcbArray[i].time_used == 0) {
+            pcbArray[i].time_used = 1;
             pcbArray[i].tos = ((0x181 + i) << 12);  // also allocate a stack here
             pcbArray[i].next = &pcbArray[0];
             pcbArray[i].state = READY_STATE;
@@ -150,9 +148,8 @@ PCB_t *pcb_alloc(void)
 
 void pcb_free(PCB_t *pcb)
 {
-    if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) 
-        return;
-    pcb->used = 0;
+    if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) return;
+    pcb->time_used = 0;
 }
 
 static void process_startup(void) 
@@ -177,14 +174,55 @@ PCB_t *process_create(void (*ent)())
 
     rv->tos = (uint64_t)tos;
     rv->virtAddr = GetCR3();
+    rv->sleep_time = (unsigned long)-1;
 
     return rv;
 }
 
-PCB_t* A;
-PCB_t* B;
-PCB_t* C;
-PCB_t* D;
+void add_sleeping_process(PCB_t *task)
+{
+    if (!task) return;
+
+    task->state = SLEEPING;
+
+    if (sleepingListHead == (PCB_t *)0) {
+        sleepingListHead = sleepingListTail = task;
+    } else {
+        sleepingListTail->next = task;
+        sleepingListTail = task;
+    }
+}
+
+void SleepUntil(unsigned long when)
+{
+    //LockAndPostpone();
+
+    if (when < PIT_get_counter()) {
+        //UnlockAndSchedule();
+        return;
+    }
+
+    currentPCB->sleep_time = when;
+    add_sleeping_process(currentPCB);
+
+    //UnlockAndSchedule();    // -- this is OK because the scheduler structures are in order; worst case 
+                            //    is a task change to itself.
+    //BlockProcess(SLEEPING);
+}
+
+
+
+void process_update_time_used() {
+    double counter = lastCounter;
+    lastCounter = PIT_get_counter();
+    currentPCB->time_used += (lastCounter - counter);
+}
+
+/*       -----Testing-----           */
+
+PCB_t *A;
+PCB_t *B;
+PCB_t *C;
 
 char pch = 'A';
 void Process(void)

@@ -4,6 +4,7 @@
 #include "../include/io.h"
 #include "../include/keyboard.h"
 #include "../include/vga.h"
+#include "pit.h"
 
 /*
 for now, prints a warning message about the page fault
@@ -36,6 +37,13 @@ void __attribute__ ((interrupt)) key_board_handler(struct interrupt_frame* frame
     uint8_t scancode = in_b(0x60);
     keyboard_handler(scancode);
 
+    pic_end_master();
+}
+
+
+void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
+{
+    PIT_tick();
     pic_end_master();
 }
 

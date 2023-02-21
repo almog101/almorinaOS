@@ -57,6 +57,7 @@ fs_inode_t* fs_get_inode(fs_superblock_t* device, fs_inode_t* dir, const char* p
 
 char* fs_extract_filename_from_path(const char* path, int* len);
 fs_inode_t* fs_get_inode_dir(fs_superblock_t* device, fs_inode_t* dir, const char* path);
+fs_inode_t* fs_get_inode_by_filename(fs_inode_t* dir, const char* filename);
 
 extern fs_superblock_t* ramfs_device;
 extern fs_inode_t* ramfs_root;

@@ -124,6 +124,23 @@ void putd(int n)
 	putc('0'+n);
 }
 
+void putf(float f) {
+	int i, k, flag = 0;
+    putd((int)f);
+
+	f -= (int)f;
+    if (f > 0) 
+	{
+        putc('.');
+        for (k = 0; k < 6; k++) 
+		{
+            f *= 10;
+            putc((int)f % 10 + '0');
+            f -= (int)f;
+        }
+    }
+}
+
 void printf(const char* format, ...)
 {
 	va_list arguments;                     
@@ -147,11 +164,14 @@ void printf(const char* format, ...)
 				case 'c':
 					putc(va_arg ( arguments, char ));
 					break;
+				case 'f':
+					putf( va_arg ( arguments, double ));
+					break;
 				case 's':
 					puts(va_arg ( arguments, char* ));
 					break;
 				default:
-					break;
+					i--;
 			}
 			i++;
 		}
@@ -178,5 +198,7 @@ void fgets(char* dest, int n)
 			else
 				dest[i++] = ch;
 		}
+		else
+			Sleep(10);
 	} while(i < n && ch != NEWLINE_CHAR);
 }

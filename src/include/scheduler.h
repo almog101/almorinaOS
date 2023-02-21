@@ -22,6 +22,8 @@ typedef struct PCB_t
 extern PCB_t* currentPCB;
 extern PCB_t  pcbArray[MAX_TASKS];
 extern PCB_t* end_of_ready_list;
+extern int postponed_tasks_counter;
+extern int postponed_tasks_flag;
 
 extern void switch_to_task(PCB_t *task) __attribute__((cdecl));
 extern unsigned int GetCR3(void);

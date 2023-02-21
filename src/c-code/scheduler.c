@@ -14,6 +14,36 @@ PCB_t* end_of_ready_list;
 
 bool is_first = true;
 int IRQ_disable_counter = 0;
+int postponed_tasks_counter = 0;
+int postponed_tasks_flag = 0;
+
+void lock_task(void)
+{
+#ifndef SMP
+    __asm__("cli");
+    IRQ_disable_counter++;
+    postponed_tasks_counter++;
+#endif
+}
+
+void unlock_task(void)
+{
+#ifndef SMP
+    postponed_tasks_counter--;
+
+    if(postponed_tasks_counter == 0)
+    {
+        if(postponed_tasks_flag != 0) 
+        {
+            postponed_tasks_flag = 0;
+            schedule();
+        }
+    }
+    IRQ_disable_counter--;
+    if(IRQ_disable_counter == 0)
+        __asm__("sti");
+#endif
+}
  
 void lock_scheduler(void) 
 {
@@ -142,11 +172,14 @@ void ProcessB(void)
     while (1)
     {
         putc('B');
-        block_task(PAUSED);
 
-        // lock_scheduler();
-        // schedule();
-        // unlock_scheduler();
+        lock_task();
+        // delay that we don't have
+        unlock_task();
+
+        lock_scheduler();
+        schedule();
+        unlock_scheduler();
     }
 }
 
@@ -155,17 +188,18 @@ void ProcessC(void)
     while (1)
     {
         putc('C');
+
         lock_scheduler();
         schedule();
         unlock_scheduler();
     }
 }
+
 void ProcessD(void)
 {
     while (1)
     {
         putc('D');
-        unblock_task(B);
 
         lock_scheduler();
         schedule();
@@ -194,6 +228,12 @@ void test_scheduler()
 
 void schedule()
 {
+    if(postponed_tasks_counter != 0)
+    {
+        postponed_tasks_flag = 1;
+        return;
+    }
+
     if (start_of_ready_list != 0)
     {
         PCB_t* task = start_of_ready_list;

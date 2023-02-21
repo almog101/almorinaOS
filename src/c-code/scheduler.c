@@ -8,6 +8,7 @@
 #define PUSH(tos,val) (*(-- tos) = val)
 
 PCB_t* currentPCB;
+PCB_t* sceduale_task;
 PCB_t  pcbArray[MAX_TASKS];
 PCB_t* start_of_ready_list = 0;
 PCB_t* end_of_ready_list;
@@ -70,6 +71,23 @@ void block_task(int reason_for_waiting)
     unlock_scheduler();
 }
 
+//
+// -- Add a process to the list of ready tasks
+//    ----------------------------------------
+void add_ready_process(PCB_t *task)
+{
+    if (!task) return;
+
+    task->state = READY_STATE;
+
+    if (start_of_ready_list == 0) {
+        start_of_ready_list = end_of_ready_list = task;
+    } else {
+        start_of_ready_list->next = task;
+        end_of_ready_list = task;
+    }
+}
+
 void unblock_task(PCB_t* task)
 {
     lock_scheduler();
@@ -77,8 +95,9 @@ void unblock_task(PCB_t* task)
         switch_to_task(task);
     else
     {
-        end_of_ready_list->next = task;
-        end_of_ready_list = task;
+		add_ready_process(task);
+        //end_of_ready_list->next = task;
+        //end_of_ready_list = task;
     }
     unlock_scheduler();
 }
@@ -138,7 +157,7 @@ void pcb_free(PCB_t *pcb)
 
 static void process_startup(void) 
 {
-    /// TODO: ??
+	unlock_scheduler();
 }
 
 PCB_t *process_create(void (*ent)())
@@ -167,63 +186,40 @@ PCB_t* B;
 PCB_t* C;
 PCB_t* D;
 
-void ProcessB(void)
+char pch = 'A';
+void Process(void)
 {
-    while (1)
-    {
-        putc('B');
+    char ch = pch ++;
+    while (true) {
+        if (currentPCB->state == RUNNING_STATE) putc(ch);
+        else putc(ch - 'A' + 'a');
+		putc('\n');
 
-        lock_task();
-        // delay that we don't have
-        unlock_task();
-
-        lock_scheduler();
-        schedule();
-        unlock_scheduler();
-    }
-}
-
-void ProcessC(void)
-{
-    while (1)
-    {
-        putc('C');
-
-        lock_scheduler();
-        schedule();
-        unlock_scheduler();
-    }
-}
-
-void ProcessD(void)
-{
-    while (1)
-    {
-        putc('D');
-
-        lock_scheduler();
-        schedule();
-        unlock_scheduler();
+        block_task(PAUSED);
     }
 }
 
 void test_scheduler()
 {
     scheduler_init();
+	sceduale_task = currentPCB;
 
-    A = currentPCB;
-    B = process_create(ProcessB);
-    C = process_create(ProcessC);
-    D = process_create(ProcessD);
+	PCB_t* p1 = process_create(Process);
+	PCB_t* p2 = process_create(Process);
+	process_create(Process);
+	process_create(Process);
+	process_create(Process);
 
-	for (int i = 0; i < 4; i++)
-	{
-        putc('A');
-        lock_scheduler();
-        schedule();
-        unlock_scheduler();
-        putc('\n');
+    for (int j = 0; j<3; j++) {
+        for (int i = 0; i < 4; i ++) {
+            lock_scheduler();
+            schedule();
+            unlock_scheduler();
+        }
+		unblock_task(p1);
+		unblock_task(p2);
     }
+	puts("Test ended\n");
 }
 
 void schedule()
@@ -240,4 +236,7 @@ void schedule()
         start_of_ready_list = start_of_ready_list->next;
         switch_to_task(task);
     }
+	else {
+		switch_to_task(sceduale_task);
+	}
 }

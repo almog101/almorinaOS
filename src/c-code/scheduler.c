@@ -18,6 +18,14 @@ int IRQ_disable_counter = 0;
 int postponed_tasks_counter = 0;
 int postponed_tasks_flag = 0;
 
+PCB_t* idle_task_p;
+
+void idle_task(void)
+{
+    for(;;)
+        __asm__("hlt");
+}
+
 void lock_task(void)
 {
 #ifndef SMP
@@ -91,13 +99,11 @@ void add_ready_process(PCB_t *task)
 void unblock_task(PCB_t* task)
 {
     lock_scheduler();
-    if (start_of_ready_list == 0)
+    if (start_of_ready_list == 0 || currentPCB == idle_task_p)
         switch_to_task(task);
     else
     {
 		add_ready_process(task);
-        //end_of_ready_list->next = task;
-        //end_of_ready_list = task;
     }
     unlock_scheduler();
 }
@@ -181,18 +187,16 @@ PCB_t *process_create(void (*ent)())
     return rv;
 }
 
-PCB_t* A;
-PCB_t* B;
-PCB_t* C;
-PCB_t* D;
-
 char pch = 'A';
 void Process(void)
 {
-    char ch = pch ++;
-    while (true) {
-        if (currentPCB->state == RUNNING_STATE) putc(ch);
-        else putc(ch - 'A' + 'a');
+    char ch = pch++;
+    while (true) 
+    {
+        if (currentPCB->state == RUNNING_STATE) 
+            putc(ch);
+        else 
+            putc('w');
 		putc('\n');
 
         block_task(PAUSED);
@@ -206,12 +210,14 @@ void test_scheduler()
 
 	PCB_t* p1 = process_create(Process);
 	PCB_t* p2 = process_create(Process);
-	process_create(Process);
-	process_create(Process);
-	process_create(Process);
+	// process_create(Process);
+	// process_create(Process);
+	// process_create(Process);
 
-    for (int j = 0; j<3; j++) {
-        for (int i = 0; i < 4; i ++) {
+    for (int j = 0; j < 3; j++) 
+    {
+        for (int i = 0; i < 4; i++) 
+        {
             lock_scheduler();
             schedule();
             unlock_scheduler();
@@ -224,7 +230,7 @@ void test_scheduler()
 
 void schedule()
 {
-    if(postponed_tasks_counter != 0)
+    if (postponed_tasks_counter != 0)
     {
         postponed_tasks_flag = 1;
         return;
@@ -234,9 +240,20 @@ void schedule()
     {
         PCB_t* task = start_of_ready_list;
         start_of_ready_list = start_of_ready_list->next;
+
+        if (task == idle_task_p)
+        {
+            if (start_of_ready_list != 0)
+            {   
+                task = start_of_ready_list;
+                idle_task_p->next = task->next;
+                start_of_ready_list = idle_task;
+            }
+            else if (currentPCB->state == RUNNING_STATE)
+                return;
+        }
         switch_to_task(task);
     }
-	else {
+	else
 		switch_to_task(sceduale_task);
-	}
 }

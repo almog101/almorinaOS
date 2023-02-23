@@ -2,12 +2,16 @@
 #define SCHEDULER_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_TASKS       256
 
-#define READY_STATE     0
-#define RUNNING_STATE   1
-#define PAUSED          2
+enum TaskState {
+	TASK_STATE_READY,
+	TASK_STATE_RUNNING,
+	TASK_STATE_PAUSED,
+	TASK_STATE_WAITING_FOR_LOCK,
+};
 
 // Process Control Block
 typedef struct PCB_t 
@@ -15,9 +19,9 @@ typedef struct PCB_t
     uint64_t tos;       // kernel stack top 
     uint64_t virtAddr;  // virtual address space
     struct PCB_t *next; // next task
-    int state;          // ready to run / running / waiting for something
-    int used;           // is available
-	int switch_time;
+    uint8_t state;          // ready to run / running / waiting for something
+    bool used;           // is available
+	double switch_time;
 } PCB_t;
 
 extern PCB_t* currentPCB;
@@ -33,6 +37,9 @@ void process_update_time_used();
 extern void scheduler_init(void);
 extern PCB_t *process_create(void (*ent)());
 void test_scheduler();
+
+void lock_scheduler(void);
+void unlock_scheduler(void);
 
 void schedule();
 

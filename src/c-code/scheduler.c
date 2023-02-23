@@ -5,9 +5,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "pit.h"
+#include "locks.h"
 
 #define PUSH(tos,val) (*(-- tos) = val)
-#define MAX_TASK_TIME 10
+#define MAX_TASK_TIME 100
 
 PCB_t* currentPCB;
 PCB_t* sceduale_task;
@@ -80,7 +81,7 @@ void add_ready_process(PCB_t *task)
 {
     if (!task) return;
 
-    task->state = READY_STATE;
+    task->state = TASK_STATE_READY;
 
     if (start_of_ready_list == 0) {
         start_of_ready_list = end_of_ready_list = task;
@@ -116,7 +117,7 @@ void scheduler_init(void)
     pcbArray[0].switch_time = 0;
     pcbArray[0].tos = 0;
     pcbArray[0].virtAddr = GetCR3();
-    pcbArray[0].state = RUNNING_STATE;
+    pcbArray[0].state = TASK_STATE_RUNNING;
     pcbArray[0].next = (PCB_t *)0;
 
     currentPCB = &pcbArray[0];
@@ -132,7 +133,7 @@ PCB_t *pcb_alloc(void)
             pcbArray[i].switch_time = 0;
             pcbArray[i].tos = ((0x181 + i) << 12);  // also allocate a stack here
             pcbArray[i].next = &pcbArray[0];
-            pcbArray[i].state = READY_STATE;
+            pcbArray[i].state = TASK_STATE_READY;
 
             if(is_first)
             {
@@ -197,11 +198,11 @@ void irq_schedule_handler(void)
 			continue;
 
 		if ( current_time - task->switch_time < MAX_TASK_TIME ){
-			 if (task->state == PAUSED)
+			 if (task->state == TASK_STATE_PAUSED)
 				add_ready_process(task);
 		}
 		else {
-			task->state = PAUSED;
+			task->state = TASK_STATE_PAUSED;
 		}
 	}
 
@@ -215,12 +216,11 @@ char pch = 'A';
 void Process(void)
 {
     char ch = pch ++;
-    for (int i = 0; i<300000; i++) {
-        if (currentPCB->state == RUNNING_STATE) putc(ch);
+    for (;;) {
+        if (currentPCB->state == TASK_STATE_RUNNING) putc(ch);
         else putc(ch - 'A' + 'a');
+		Sleep(2000);
     }
-
-	for(;;);
 }
 
 void test_scheduler()
@@ -232,8 +232,6 @@ void test_scheduler()
 	process_create(Process);
 	process_create(Process);
 	process_create(Process);
-
-
 
 	puts("Test ended\n");
 }

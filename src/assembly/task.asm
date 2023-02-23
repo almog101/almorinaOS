@@ -6,11 +6,13 @@ extern 	        switch_to_task
 extern          end_of_ready_list
 extern          postponed_tasks_counter
 extern          postponed_tasks_flag
+extern 			PIT_get_counter
 
 TOS     equ     0
 VAS     equ     8
 NXS     equ     16
 STS     equ     24
+TIME    equ		32
 
 READY_STATE     equ     0
 RUNNING_STATE   equ     1
@@ -48,11 +50,13 @@ switch_to_task:
         mov     [end_of_ready_list], rdi
 
 .not_running_state:
-
         pop     rax                     ;; get back rax value
-	mov     rbp, rax
+		mov     rbp, rax
+		
+		call PIT_get_counter
         mov     [currentPCB], rbp       ;; save the adress of current PCB
 
+		mov		[rbp + TIME], rax
         mov     rsp, [rbp + TOS]        ;; load the next process's stack
         mov     rax, [rbp + VAS]        ;; load the next process's virtual address space
 

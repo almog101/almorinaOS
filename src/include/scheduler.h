@@ -17,6 +17,7 @@ typedef struct PCB_t
     struct PCB_t *next; // next task
     int state;          // ready to run / running / waiting for something
     int used;           // is available
+	int switch_time;
 } PCB_t;
 
 extern PCB_t* currentPCB;

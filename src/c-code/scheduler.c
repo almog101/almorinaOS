@@ -1,17 +1,19 @@
-// cooperative round robin scheduler 
+// preemptive round robin scheduler
 
 #include "scheduler.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <memory.h>
 
 #define PUSH(tos,val) (*(-- tos) = val)
 
-PCB_t* currentPCB;
-PCB_t* sceduale_task;
+PCB_t* currentPCB = 0;
+PCB_t* sceduale_task = 0;
 PCB_t  pcbArray[MAX_TASKS];
 PCB_t* start_of_ready_list = 0;
-PCB_t* end_of_ready_list;
+PCB_t* end_of_ready_list = 0;
+PCB_t* terminated_task_list = 0;
 
 bool is_first = true;
 int IRQ_disable_counter = 0;
@@ -48,6 +50,7 @@ void unlock_task(void)
             schedule();
         }
     }
+
     IRQ_disable_counter--;
     if(IRQ_disable_counter == 0)
         __asm__("sti");
@@ -108,6 +111,52 @@ void unblock_task(PCB_t* task)
     unlock_scheduler();
 }
 
+void pcb_free(PCB_t *pcb)
+{
+    if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) 
+        return;
+    pcb->used = 0;
+}
+
+void free_task(PCB_t* task)
+{
+    // free the kernel stack top & free the task
+    pcb_free(task);
+    printf("task's kernel stack point 0x%x\n", task->tos);
+}
+
+void tasks_cleaner(void)
+{
+    PCB_t* task;
+
+    lock_task();
+    while (terminated_task_list != 0)
+    {
+        task = terminated_task_list;
+        terminated_task_list = task->next;
+        free_task(task);
+    }
+    block_task(PAUSED);
+    unlock_task();
+}
+
+void terminate_task(void)
+{
+    // add clear memory in user space
+
+    lock_task();
+    lock_scheduler();
+
+    currentPCB->next = terminated_task_list;
+    terminated_task_list = currentPCB;
+
+    unlock_scheduler();
+    block_task(TERMINATED);
+    // Make sure the cleaner task isn't paused
+    tasks_cleaner();
+    unlock_task();
+}
+
 /** TODO: add comments
 initialize PCB array with 
 */
@@ -154,13 +203,6 @@ PCB_t *pcb_alloc(void)
     return (PCB_t *)0;
 }
 
-void pcb_free(PCB_t *pcb)
-{
-    if (pcb < &pcbArray[0] || pcb >= &pcbArray[MAX_TASKS]) 
-        return;
-    pcb->used = 0;
-}
-
 static void process_startup(void) 
 {
 	unlock_scheduler();
@@ -174,12 +216,12 @@ PCB_t *process_create(void (*ent)())
         return rv;
 
     uint64_t *tos = (uint64_t*)rv->tos;
-    PUSH(tos, (uint64_t)process_startup);  // startup function
-    PUSH(tos, (uint64_t)ent);        // entry point
-	PUSH(tos, 0);           // RBP
-    PUSH(tos, 0);           // RDI
-    PUSH(tos, 0);           // RSI
-    PUSH(tos, 0);           // RBX
+    PUSH(tos, (uint64_t)process_startup);   // startup function
+    PUSH(tos, (uint64_t)ent);               // entry point
+	PUSH(tos, 0);   // RBP
+    PUSH(tos, 0);   // RDI
+    PUSH(tos, 0);   // RSI
+    PUSH(tos, 0);   // RBX
 
     rv->tos = (uint64_t)tos;
     rv->virtAddr = GetCR3();
@@ -196,10 +238,22 @@ void Process(void)
         if (currentPCB->state == RUNNING_STATE) 
             putc(ch);
         else 
-            putc('w');
+            putc('L');
 		putc('\n');
 
-        block_task(PAUSED);
+        lock_scheduler();
+        schedule();
+        unlock_scheduler();
+    }
+}
+
+void process_2(void)
+{
+    while (true)
+    {
+        putc('e');
+        putc('\n');
+        terminate_task();
     }
 }
 
@@ -210,21 +264,19 @@ void test_scheduler()
 
 	PCB_t* p1 = process_create(Process);
 	PCB_t* p2 = process_create(Process);
+    PCB_t* p3 = process_create(process_2);
+    printf("p1 kernel stack point 0x%x\np2 kernel stack point 0x%x\np3 kernel stack point 0x%x\n", p1->tos, p2->tos, p3->tos);
 	// process_create(Process);
 	// process_create(Process);
 	// process_create(Process);
 
-    for (int j = 0; j < 3; j++) 
+    for (int j = 0; j < 4; j++) 
     {
-        for (int i = 0; i < 4; i++) 
-        {
-            lock_scheduler();
-            schedule();
-            unlock_scheduler();
-        }
-		unblock_task(p1);
-		unblock_task(p2);
+        lock_scheduler();
+        schedule();
+        unlock_scheduler();
     }
+
 	puts("Test ended\n");
 }
 

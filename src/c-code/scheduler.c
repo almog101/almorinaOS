@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "pit.h"
 #include "locks.h"
+#include "shell.h"
 
 #define PUSH(tos,val) (*(-- tos) = val)
 #define MAX_TASK_TIME 100
@@ -124,7 +125,6 @@ void free_task(PCB_t* task)
 {
     // free the kernel stack top & free the task
     pcb_free(task);
-    printf("task's kernel stack point 0x%x\n", task->tos);
 }
 
 void tasks_cleaner(void)
@@ -138,7 +138,6 @@ void tasks_cleaner(void)
         terminated_task_list = task->next;
         free_task(task);
     }
-    block_task(PAUSED);
     unlock_task();
 }
 
@@ -153,9 +152,10 @@ void terminate_task(void)
     terminated_task_list = currentPCB;
 
     unlock_scheduler();
-    block_task(TERMINATED);
+    block_task(TASK_STATE_TERMINATED);
     // Make sure the cleaner task isn't paused
     tasks_cleaner();
+	
     unlock_task();
 }
 
@@ -245,6 +245,9 @@ void irq_schedule_handler(void)
 		if (task->used == 0)
 			continue;
 
+		if (task->state == TASK_STATE_TERMINATED)
+			continue;
+
 		if ( current_time - task->switch_time < MAX_TASK_TIME ){
 			 if (task->state == TASK_STATE_PAUSED)
 				add_ready_process(task);
@@ -261,13 +264,24 @@ void irq_schedule_handler(void)
 /*       -----Testing-----           */
 
 char pch = 'A';
+int process_count = 0;
+
 void Process(void)
 {
     char ch = pch ++;
+	process_count++;
+
+	int count = 0;
     for (;;) {
         if (currentPCB->state == TASK_STATE_RUNNING) putc(ch);
         else putc(ch - 'A' + 'a');
 		Sleep(2000);
+
+		if (count++ >= 10) {
+			process_count--;
+			terminate_task();
+			break;
+		}
     }
 }
 
@@ -278,18 +292,13 @@ void test_scheduler()
 
 	PCB_t* p1 = process_create(Process);
 	PCB_t* p2 = process_create(Process);
-    PCB_t* p3 = process_create(process_2);
-    printf("p1 kernel stack point 0x%x\np2 kernel stack point 0x%x\np3 kernel stack point 0x%x\n", p1->tos, p2->tos, p3->tos);
-	// process_create(Process);
-	// process_create(Process);
-	// process_create(Process);
+    PCB_t* p3 = process_create(Process);
 
-    for (int j = 0; j < 4; j++) 
-    {
-        lock_scheduler();
-        schedule();
-        unlock_scheduler();
-    }
+	while (process_count == 0);
+
+	while(process_count > 0) {
+		Sleep(2000);
+	}
 
 	puts("Test ended\n");
 }
@@ -315,9 +324,11 @@ void schedule()
                 idle_task_p->next = task->next;
                 start_of_ready_list = idle_task;
             }
-            else if (currentPCB->state == RUNNING_STATE)
+            else if (currentPCB->state == TASK_STATE_RUNNING)
                 return;
         }
-        switch_to_task(task);
+
+		if (task->state != TASK_STATE_TERMINATED)
+			switch_to_task(task);
     }
 }

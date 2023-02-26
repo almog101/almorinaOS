@@ -6,13 +6,13 @@ extern 	        switch_to_task
 extern          end_of_ready_list
 extern          postponed_tasks_counter
 extern          postponed_tasks_flag
-extern 			PIT_get_counter
+extern 		PIT_get_counter
 
-TOS			equ     0
+TOS		equ     0
 VIRT_ADDR	equ     8
 NEXT		equ     16
 STATE		equ     24
-TIME		equ		32
+TIME		equ	32
 
 READY_STATE     equ     0
 RUNNING_STATE   equ     1
@@ -39,11 +39,11 @@ switch_to_task:
 
         mov     al, [rdi + STATE]
         mov     bl, RUNNING_STATE
-        cmp     al, bl                ;; check if current process's state is running state
+        cmp     al, bl                  ;; check if current process's state is running state
         jne     .not_running_state
         
         mov     bl, READY_STATE
-        mov     [rdi + STATE], bl        ;; save waiting state in current process's state
+        mov     [rdi + STATE], bl       ;; save waiting state in current process's state
 
         mov     rax, [end_of_ready_list]
         mov     [rax + NEXT], rdi

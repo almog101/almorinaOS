@@ -6,7 +6,8 @@
 
 #define MAX_TASKS       256
 
-enum TaskState {
+enum TaskState 
+{
 	TASK_STATE_READY,
 	TASK_STATE_RUNNING,
 	TASK_STATE_PAUSED,

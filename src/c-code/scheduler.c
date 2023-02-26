@@ -296,9 +296,8 @@ void test_scheduler()
 
 	while (process_count == 0);
 
-	while(process_count > 0) {
+	while(process_count > 0)
 		Sleep(2000);
-	}
 
 	puts("Test ended\n");
 }

@@ -8,4 +8,3 @@ typedef struct {
 
 semaphore_t* semaphore_create(int max_count);
 semaphore_t* mutex_create();
-

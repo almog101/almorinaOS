@@ -5,6 +5,7 @@
 #include "../include/keyboard.h"
 #include "../include/vga.h"
 #include "pit.h"
+#include "scheduler.h"
 
 /*
 for now, prints a warning message about the page fault
@@ -45,6 +46,7 @@ void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
 {
     PIT_tick();
     pic_end_master();
+	irq_schedule_handler();
 }
 
 void remap_pic()

@@ -30,10 +30,9 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
-	//cls();
-	test_scheduler();
-	//print_greetings();
-	//shell_main();
+	cls();
+	print_greetings();
+	shell_main();
 }
 
 /// Activate interrupts.

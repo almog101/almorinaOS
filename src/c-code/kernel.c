@@ -16,10 +16,11 @@ extern idt_descriptor_entry _idt[256];
 fs_superblock_t* device;
 
 void prepare_interrupts();
-
 extern int sse_enable(void);
+extern void syscall(uint64_t num);
 
-extern void syscall(uint64_t num, uint64_t val);
+extern unsigned int get_level(void);
+
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	sse_enable();
@@ -28,15 +29,17 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	scheduler_init();
 	initialize_syscalls();
 	ramfs_device = fs_initialize(100, 30);
-	//ramfs_root = fs_dir_add_entry(ramfs_device, 0, "/dir", INODE_TYPE_DIR);
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
-
 	cls();
-	syscall(22, 99);
+	syscall(10);
 	test_scheduler();
 	print_greetings();
+
+	// uint64_t level = get_level();
+	// printf("[%d]\n", (level & 0x3));
+	// printf("privilege level: %d\n", get_level());
 
 	shell_main();
 }

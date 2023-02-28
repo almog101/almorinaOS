@@ -37,6 +37,7 @@ PCB_t *pcb_alloc(void)
         if (pcbArray[i].time_used == 0) {
             pcbArray[i].time_used = 1;
             pcbArray[i].tos = ((0x181 + i) << 12);  // also allocate a stack here
+            printf("%d, ", pcbArray[i].tos);
             return &pcbArray[i];
         }
     }
@@ -72,6 +73,7 @@ PCB_t *process_create(void (*ent)())
     PUSH(tos, 0);           // RBX
 
     rv->tos = (uint64_t)tos;
+    printf("%d\n", rv->tos);
     rv->virtAddr = GetCR3();
     rv->sleep_time = (unsigned long)-1;
 

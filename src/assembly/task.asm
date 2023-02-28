@@ -8,7 +8,6 @@ extern      process_update_time_used ;; void process_update_time_used()
 TOS     equ         0
 VAS     equ         8
 
-
 [bits 64]
 switch_to_task:
         push        rbx

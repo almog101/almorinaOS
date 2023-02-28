@@ -15,5 +15,6 @@ extern void* malloc(uint64_t size);
 void free(void* ptr);
 
 int initialize_memory(unsigned long magic, unsigned long addr);
+void print_segs();
 #endif
 

@@ -1,15 +1,11 @@
-global syscall
+global	syscall
+
 [bits 64]
 syscall:
-	push ax
-	push bx
+	push 	bx
 
-	mov bx, di
-	mov ax, si
-	mov bh, al
+	mov 	bx, di	;syscall number
+	int 	0x80
 
-	int 0x80
-
-	pop bx
-	pop ax
+	pop 	bx
 	ret

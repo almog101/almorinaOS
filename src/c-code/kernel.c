@@ -21,6 +21,8 @@ extern int sse_enable(void);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
+	setup_gdt();
+
 	sse_enable();
 	prepare_interrupts();
 	initialize_memory(magic, addr);

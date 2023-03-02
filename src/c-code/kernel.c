@@ -7,8 +7,8 @@
 #include <idt.h>
 #include <heap.h>
 #include "bitset.h"
-#include "fs.h"
-#include "scheduler.h"
+#include <fs.h>
+#include <scheduler.h>
 #include "pit.h"
 
 idt_register idt_r;
@@ -33,13 +33,8 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 	cls();
-
 	print_greetings();
-	char message[100] = {0};
-	strcpy(message, "hi bitch");
-	_syscall(4, 1, message, strlen(message));
-	_syscall(3, 1, message, 100);
-	// shell_main();
+	shell_main();
 }
 
 /// Activate interrupts.

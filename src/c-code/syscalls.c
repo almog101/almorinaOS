@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "interrupts.h"
 #include <string.h>
+#include <fs.h>
 
 typedef void (*SYSCALL_FUNCTION) (void);
 SYSCALL_FUNCTION syscalls[256];
@@ -27,10 +28,22 @@ void sys_write(void)
 {
 	printf("syscall:\twrite\n");
 
-	int output = *(rsp_register);
+	fs_dir_entry* output = *(rsp_register);
 	char* str = *(rsp_register + 1);
 	int str_len = *(rsp_register + 2);
-	printf("output:\t\t%d\nstring:\t\t%s\nstring length:\t%d\n\n", output, str, str_len);
+
+	if (output == STDOUT)
+	{
+		puts(str);
+		putc('\n');
+	}
+	
+	else
+	{
+		char* content;
+		strncpy(content, str, str_len);
+		fs_inode_write_data(ramfs_device, output->inode, content);
+	}
 }
 
 void sys_close(void) {}

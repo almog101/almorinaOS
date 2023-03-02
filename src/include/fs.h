@@ -5,6 +5,8 @@
 #define BLOCK_SIZE 4096
 #define NUM_OF_BLOCKS_IN_INODE 15
 
+#define STDOUT 1
+
 #define FS_MAX_FILENAME_SIZE (128-(sizeof(int)) - (sizeof(uint8_t)))
 
 enum INODE_TYPE 

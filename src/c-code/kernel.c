@@ -26,8 +26,8 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	sse_enable();
 	prepare_interrupts();
 	initialize_memory(magic, addr);
-	scheduler_init();
-	initialize_syscalls();
+	// scheduler_init();
+	// initialize_syscalls();
 	ramfs_device = fs_initialize(100, 30);
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);

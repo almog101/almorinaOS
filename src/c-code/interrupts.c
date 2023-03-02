@@ -40,20 +40,19 @@ void __attribute__ ((interrupt)) key_board_handler(struct interrupt_frame* frame
     pic_end_master();
 }
 
-
 void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
 {
     PIT_tick();
     pic_end_master();
 }
 
-void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame) {
-	uint64_t rbx = 0;
+void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame) 
+{
+    uint64_t rbx = 0;
 	__asm__("" : "=b"(rbx) ::);
-	const uint16_t bx = rbx & 0xffff;
-	const int16_t sys_number = (int16_t) bx & 0x00ff;
-	const int16_t sys_value  = (int16_t) (bx >> 8) & 0xff;
-	dispatch_syscall(sys_number, sys_value);
+	const int16_t sys_number = (int16_t) rbx & 0x00ff;
+
+	dispatch_syscall(sys_number);
 }
 
 void remap_pic()

@@ -17,9 +17,9 @@ fs_superblock_t* device;
 
 void prepare_interrupts();
 extern int sse_enable(void);
-extern void syscall(uint64_t num);
 
 extern unsigned int get_level(void);
+extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
@@ -33,15 +33,13 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 	cls();
-	syscall(10);
-	test_scheduler();
+
 	print_greetings();
-
-	// uint64_t level = get_level();
-	// printf("[%d]\n", (level & 0x3));
-	// printf("privilege level: %d\n", get_level());
-
-	shell_main();
+	char message[100] = {0};
+	strcpy(message, "hi bitch");
+	_syscall(4, 1, message, strlen(message));
+	_syscall(3, 1, message, 100);
+	// shell_main();
 }
 
 /// Activate interrupts.

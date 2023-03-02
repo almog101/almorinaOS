@@ -19,7 +19,7 @@ switch_to_task:
         call        process_update_time_used ;; update the time used field before swapping
 		pop			rax
 
-        mov         rdi,[currentPCB]        ;; `edi` = previous tasks PCB
+        mov         rdi,[currentPCB]        ;; `rdi` = previous tasks PCB
         mov         [rdi+TOS],rsp           ;; save the top of the stack
 
 

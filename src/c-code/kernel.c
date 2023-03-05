@@ -18,22 +18,35 @@ fs_superblock_t* device;
 void prepare_interrupts();
 extern int sse_enable(void);
 
-extern unsigned int get_level(void);
 extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3);
+int _add(int num);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
 	sse_enable();
 	prepare_interrupts();
 	initialize_memory(magic, addr);
-	// scheduler_init();
-	// initialize_syscalls();
+	scheduler_init();
+	initialize_syscalls();
 	ramfs_device = fs_initialize(100, 30);
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
 	cls();
 	print_greetings();
+
+	int q = _add(7);
+	printf("\n>> %d <<\n\n", q);
+
+	// char* message;
+	// fs_inode_t file;
+
+	// strcpy(message, "a content\n");
+	// _syscall(4, 1, message, strlen(message));
+
+	// strcpy(message, "yes\n");
+	// _syscall(4, &file, message, strlen(message));
+
 	shell_main();
 }
 

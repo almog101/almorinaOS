@@ -4,28 +4,17 @@ extern 	rsp_register
 
 [bits 64]
 _syscall:
-	push 	rbx
+	push 	rcx		;argument 3
+	push 	rdx		;argument 2
+	push 	rsi		;argument 1
+	push 	rdi		;syscall number
 
-	push 	rcx
-	push 	rdx
-
-	xor 	rbx, rbx
-	mov 	rbx, rsi
-	push 	rbx
-
-	mov 	[rsp_register], rsp
-	mov 	rbx, rdi
-
+	;mov 	[rsp_register], rsp
 	int 	0x80
 
-	pop 	rbx
+	pop 	rdi
+	pop 	rsi
 	pop 	rdx
 	pop 	rcx
 
-	pop 	rbx
 	ret
-
-;rdi
-;rsi
-;rdx
-;rcx

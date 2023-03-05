@@ -13,8 +13,10 @@ const char almorina_title_III[] = {0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x20, 0x7C, 0x2
 extern shell_list_t* shell_variables = 0;
 
 fs_inode_t* current_dir = 0;
+fs_inode_t* file_for_sys_write = 0;
 
 extern reboot();
+extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3);
 
 /// Prints almorina os' title.
 void print_greetings()
@@ -389,7 +391,7 @@ void tree(char** argv, int argc)
 void touch(char** argv, int argc)
 {
 	char* path = shell_combine_strings(argv+1, argc-1);
-	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, current_dir, path);
+	fs_inode_t* dir = fs_get_inode_dir(ramfs_device, ramfs_root, path);
 	if (dir == 0)
 	{
 		puts("path doesnt exist!\n");
@@ -402,7 +404,7 @@ void touch(char** argv, int argc)
 	filename[len] = 0;
 
 	printf("new file [%s] in inode %d\n", filename, dir);
-	fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_FILE);
+	file_for_sys_write = fs_dir_add_entry(ramfs_device, dir, filename, INODE_TYPE_FILE);
 	free(path);
 }
 
@@ -452,26 +454,59 @@ fs_dir_entry* find_file(char** argv, int argc)
 	return file;
 }
 
+fs_dir_entry* file_exist(char** argv, int argc)
+{
+	char* filename = shell_combine_strings(argv+1, argc-1);
+	fs_inode_t* dir = ramfs_root;
+	fs_dir_entry* file = -1;
+
+	for (int i =0; i<NUM_OF_BLOCKS_IN_INODE; i++)
+	{
+		if (dir->blocks[i] == 0)
+			continue;
+
+		for (int j= 0; j<BLOCK_SIZE; j+=sizeof(fs_dir_entry))
+		{
+			fs_dir_entry* ent = dir->blocks[i] + j;
+			if (strcmp(ent->name, filename) == 0)
+			{
+				file = ent;
+				goto check;
+			}
+		}
+	}
+
+	check:
+	if (file == -1)
+		puts("file doesn't exist\n");
+	free(filename);
+
+	return file;
+}
+
 // self explanatory
 void edit(char** argv, int argc)
 {
-	fs_dir_entry* file = find_file(argv, argc);
+	fs_dir_entry* file = file_exist(argv, argc);
 
-	if (file == 0)
+	if (file == -1)
 		return;
 
 	puts("Enter new file contents: ");
 	char data[100] = {0};
 	fgets(data, sizeof(data));
-	fs_inode_write_data(ramfs_device, file->inode, data);
+
+	// fs_inode_write_data(ramfs_device, file->inode, data);
+	_syscall(4, file->inode, data, strlen(data));
+	// while (1) {}
 }
 
 // self explanatory
 void cat(char** argv, int argc) // change
 {
-	fs_dir_entry* file = find_file(argv, argc);
+	fs_dir_entry* file = file_exist(argv, argc);
 
-	if (file == 0)
+	if (file == -1)
 		return;
 
 	char* data = fs_inode_get_data(ramfs_device, file->inode);

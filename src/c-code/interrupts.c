@@ -6,6 +6,8 @@
 #include "../include/vga.h"
 #include "pit.h"
 
+extern int64_t* rsp_register;
+
 /*
 for now, prints a warning message about the page fault
 and denies the user from doing any further actions
@@ -48,11 +50,8 @@ void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
 
 void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame) 
 {
-    uint64_t rbx = 0;
-	__asm__("" : "=b"(rbx) ::);
-	const int16_t sys_number = (int16_t) rbx & 0x00ff;
-
-	dispatch_syscall(sys_number);
+    // uint64_t sys_number = *(rsp_register);
+	dispatch_syscall(4);
 }
 
 void remap_pic()

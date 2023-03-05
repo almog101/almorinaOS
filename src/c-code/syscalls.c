@@ -26,23 +26,25 @@ void sys_read(void)
 
 void sys_write(void) 
 {
-	printf("syscall:\twrite\n");
+	printf("\nsyscall:\twrite\n");
 
-	fs_dir_entry* output = *(rsp_register);
-	char* str = *(rsp_register + 1);
-	int str_len = *(rsp_register + 2);
+	// fs_inode_t* output = *(rsp_register + 1);
+	// char* str = *(rsp_register + 2);
+	// int str_len = *(rsp_register + 3);
 
-	if (output == STDOUT)
+	if (1 == STDOUT)
 	{
-		puts(str);
+		// printf("data:\t\t%slength:\t\t%d\n", str, str_len);
 		putc('\n');
 	}
 	
 	else
 	{
-		char* content;
-		strncpy(content, str, str_len);
-		fs_inode_write_data(ramfs_device, output->inode, content);
+		// char* content;
+		// strncpy(content, str, str_len);
+		// fs_inode_write_data(ramfs_device, output, content);
+		// printf("data:\t\t%slength:\t\t%d\n", output->blocks[0], str_len);
+		// while (1) {}
 	}
 }
 
@@ -62,7 +64,7 @@ void initialize_syscalls()
 		syscalls[i] = 0;
 }
 
-void dispatch_syscall(uint16_t num) 
+void dispatch_syscall(int64_t num) 
 {
 	SYSCALL_FUNCTION func = syscalls[num];
 

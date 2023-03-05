@@ -10,6 +10,7 @@
 #include <fs.h>
 #include <scheduler.h>
 #include "pit.h"
+#include <elf.h>
 
 idt_register idt_r;
 extern idt_descriptor_entry _idt[256];
@@ -35,17 +36,9 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	cls();
 	print_greetings();
 
-	int q = _add(7);
-	printf("\n>> %d <<\n\n", q);
-
-	// char* message;
-	// fs_inode_t file;
-
-	// strcpy(message, "a content\n");
-	// _syscall(4, 1, message, strlen(message));
-
-	// strcpy(message, "yes\n");
-	// _syscall(4, &file, message, strlen(message));
+	elf32_ehdr* hdr = 0;
+	bool ans = elf_check_supported(hdr);
+	printf("\n>> %d <<\n\n", ans);
 
 	shell_main();
 }

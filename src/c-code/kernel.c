@@ -4,7 +4,7 @@
 #include <idt.h>
 #include <shell.h>
 #include <interrupts.h>
-#include <idt.h>
+#include <gdt.h>
 #include <heap.h>
 #include "bitset.h"
 #include "fs.h"
@@ -34,7 +34,9 @@ void kernel_main(unsigned long magic, unsigned long addr)
 
 	cls();
 	print_greetings();
-	shell_main();
+
+	extern void cpu_start_usermode();
+	cpu_start_usermode();
 }
 
 /// Activate interrupts.

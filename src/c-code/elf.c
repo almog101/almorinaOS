@@ -1,4 +1,5 @@
 #include <elf.h>
+#include <stdio.h>
 
 /**
 Check the elf file header for a magic number (byte by byte)
@@ -58,12 +59,25 @@ bool elf_check_supported(elf32_ehdr* hdr)
 INPUT:
 OUTPUT:
 */
+void* elf_load_file(void* file)
+{
+    elf32_ehdr* hdr = (elf32_ehdr*)file;
+	if(!elf_check_supported(hdr)) 
+    {
+		printf("ELF File cannot be loaded.\n");
+		return;
+	}
 
-/**
-
-INPUT:
-OUTPUT:
-*/
+	switch(hdr->e_type) 
+    {
+		case ET_EXEC:
+			// TODO : Implement
+			return NULL;
+        default:
+            printf("ELF File type is not supported :P\n");
+	}
+	return NULL;
+}
 
 /**
 

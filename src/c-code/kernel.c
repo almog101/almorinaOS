@@ -36,11 +36,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	cls();
 	print_greetings();
 
-	elf32_ehdr* hdr = 0;
-	bool ans = elf_check_supported(hdr);
-	printf("\n>> %d <<\n\n", ans);
-
-	shell_main();
+	//shell_main();
 }
 
 /// Activate interrupts.

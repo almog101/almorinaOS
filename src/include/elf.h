@@ -62,3 +62,28 @@ typedef struct
 } elf32_ehdr;
 
 bool elf_check_supported(elf32_ehdr* hdr);
+void* elf_load_file(void* file);
+
+/**
+==============
+File Structure
+==============
+
+< basically a binary file >
+
+sections
+--------
+TEXT:               the code
+DATA:               global table, variables etc
+BSS:                uninitialized arrays & variables
+RODATA:             constant strings
+COMMENT: & NOTE:    comments by the compiler / linker
+STAB: & STABSTR:    debugging symbols & similar information
+
+structure
+---------
+ -  ELF header
+ -  program header table
+ -  sections
+ -  section header table
+*/

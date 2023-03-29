@@ -5,6 +5,7 @@
 #include <shell.h>
 #include <interrupts.h>
 #include <idt.h>
+#include <gdt.h>
 #include <heap.h>
 #include "bitset.h"
 #include <fs.h>
@@ -19,7 +20,6 @@ void prepare_interrupts();
 extern int sse_enable(void);
 
 extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3);
-int _add(int num);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
@@ -28,6 +28,8 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	initialize_memory(magic, addr);
 	scheduler_init();
 	initialize_syscalls();
+	setup_gdt();
+
 	ramfs_device = fs_initialize(100, 30);
 	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
 	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
@@ -35,19 +37,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	cls();
 	print_greetings();
 
-	int q = _add(7);
-	printf("\n>> %d <<\n\n", q);
-
-	// char* message;
-	// fs_inode_t file;
-
-	// strcpy(message, "a content\n");
-	// _syscall(4, 1, message, strlen(message));
-
-	// strcpy(message, "yes\n");
-	// _syscall(4, &file, message, strlen(message));
-
-	shell_main();
+	//
 }
 
 /// Activate interrupts.

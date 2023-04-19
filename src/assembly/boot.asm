@@ -217,8 +217,8 @@ section .text
 
 long_mode_start:
 	
-	mov rdi, rax ;
-	mov rsi, rbx ;
+	mov rdi, rax
+	mov rsi, rbx
 
     ;load null into all data segment registers
 	mov ax, 0

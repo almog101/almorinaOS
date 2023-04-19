@@ -5,12 +5,12 @@
 #include <shell.h>
 #include <interrupts.h>
 #include <idt.h>
-#include <gdt.h>
 #include <heap.h>
 #include "bitset.h"
 #include <fs.h>
 #include <scheduler.h>
 #include "pit.h"
+#include <gdt.h>
 
 idt_register idt_r;
 extern idt_descriptor_entry _idt[256];
@@ -23,21 +23,21 @@ extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
-	sse_enable();
-	prepare_interrupts();
-	initialize_memory(magic, addr);
-	scheduler_init();
-	initialize_syscalls();
-	setup_gdt();
+	while(true) {}
 
-	ramfs_device = fs_initialize(100, 30);
-	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
-	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
+	// sse_enable();
+	// prepare_interrupts();
+	// initialize_memory(magic, addr);
+	// scheduler_init();
+	// initialize_syscalls();
+	// init_gdt();
 
-	cls();
-	print_greetings();
+	// ramfs_device = fs_initialize(100, 30);
+	// ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
+	// fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
-	//
+	// cls();
+	// print_greetings();
 }
 
 /// Activate interrupts.

@@ -1,6 +1,9 @@
-// #ifndef SYSCALLS_H
-// #define SYSCALLS_H
+#ifndef SYSCALLS_H
+#define SYSCALLS_H
 
-// extern int64_t* rsp_register;
+#include <stdint.h>
 
-// #endif
+void initialize_syscalls();
+void dispatch_syscall(int64_t num, int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3);
+
+#endif

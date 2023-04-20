@@ -23,21 +23,20 @@ extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
-	while(true) {}
+	setup_gdt();
 
-	// sse_enable();
-	// prepare_interrupts();
-	// initialize_memory(magic, addr);
-	// scheduler_init();
+	sse_enable();
+	prepare_interrupts();
+	initialize_memory(magic, addr);
+	scheduler_init();
 	// initialize_syscalls();
-	// init_gdt();
 
-	// ramfs_device = fs_initialize(100, 30);
-	// ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
-	// fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
+	ramfs_device = fs_initialize(100, 30);
+	ramfs_root =  fs_create_inode(ramfs_device, INODE_TYPE_DIR);
+	fs_dir_add_entry(ramfs_device, ramfs_root, "root", INODE_TYPE_DIR);
 
-	// cls();
-	// print_greetings();
+	cls();
+	print_greetings();
 }
 
 /// Activate interrupts.
@@ -50,7 +49,7 @@ void prepare_interrupts()
 	idt_set_gate((void*)zero_devision_handler, 0x0, IDT_TA_InterruptGate, 0x08, &idt_r);
 	idt_set_gate((void*)key_board_handler, 0x21, IDT_TA_InterruptGate, 0x08, &idt_r);
     idt_set_gate((void*)PIT_tick_handler, 0x20, IDT_TA_InterruptGate, 0x08, &idt_r);
-    idt_set_gate((void*)syscall_handler, 0x80, IDT_TA_InterruptGate, 0x08, &idt_r);
+    // idt_set_gate((void*)syscall_handler, 0x80, IDT_TA_InterruptGate, 0x08, &idt_r);
 
 	asm("lidt %0" : : "m" (idt_r));
 

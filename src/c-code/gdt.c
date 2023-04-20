@@ -1,76 +1,80 @@
-#include "gdt.h"
+#include <gdt.h>
 #include <stdint.h>
-#include <string.h>
 
-extern void cpu_load_gdt(uint64_t* gdt);
-extern void cpu_load_tr();
+#define segment(base, limit, typ, s, dpl, p, is64, is32, g)  \
+  ((gdt_entry_t) {                                            \
+    .limit_low = (limit) & 0xFFFF, .base_low = (base) & 0xFFFF, \
+    .base_mid = (base) >> 16, .type = typ, .desc_type = s, .cpl = dpl, \
+    .present = p, .limit_high = (limit) >> 16, .available = 0, .long_desc = is64, \
+    .op_size = is32, .granularity = g, .base_high = (base) >> 24 \
+  })
 
-tss_entry_t tss_entry;
-gdt_desc_t gdt_desc;
+#define system_segment_low(base, limit, typ, s, dpl, p, is64, is32, g) \
+  ((gdt_entry_t) {                                                 \
+    .limit_low = (limit) & 0xFFFF, .base_low = (base) & 0xFFFF, \
+    .base_mid = (base) >> 16, .type = typ, .desc_type = s, .cpl = dpl, \
+    .present = p, .limit_high = (limit) >> 16, .available = 1, .long_desc = is64, \
+    .op_size = is32, .granularity = g, .base_high = (base) >> 24 \
+  })
 
-gdt_entry_t gdt[] = 
-{
-    // null
-    {.limit_low = 0, .base_low = 0, .base_mid = 0, .access = 0, .granularity = 0, .base_high = 0},
-    // kernel code
-    {.limit_low = 0, .base_low = 0, .base_mid = 0, .access = 0, .granularity = 0, .base_high = 0},
-    // kernel data
-    {.limit_low = 0, .base_low = 0, .base_mid = 0, .access = 0, .granularity = 0, .base_high = 0},
-    // user code
-    {.limit_low = 0, .base_low = 0, .base_mid = 0, .access = 0, .granularity = 0, .base_high = 0},
-    // user data
-    {.limit_low = 0, .base_low = 0, .base_mid = 0, .access = 0, .granularity = 0, .base_high = 0},
-    // tss
-    {.limit_low = 0, .base_low = 0, .base_mid = 0, .access = 0, .granularity = 0, .base_high = 0},
+#define system_segment_high(base) \
+  ((gdt_entry_t) { \
+    .raw = (base) >> 32 \
+  })
+
+#define segment_type(b0, b1, b2, b3) \
+  (((b0) << 0) | ((b1) << 1) | ((b2) << 2) | ((b3) << 3))
+
+// segment types
+
+#define null_segment() \
+  segment(0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+#define code_segment(base, limit, dpl, read, c, is64, is32, g) \
+  segment(base, limit, segment_type(0, read, c, 1), 1, dpl, 1, is64, is32, g)
+
+#define data_segment(base, limit, dpl, write, e, is64, is32, g) \
+  segment(base, limit, segment_type(0, write, e, 0), 1, dpl, 1, is64, is32, g)
+
+// 64-bit segments
+
+#define code_segment64(ring) \
+  code_segment(0, 0, ring, 1, 0, 1, 0, 1)
+
+#define data_segment64(ring) \
+  data_segment(0, 0, ring, 1, 0, 0, 1, 1)
+
+#define tss_segment_low(base) \
+  system_segment_low(base, 0, segment_type(1, 0, 0, 1), 0, 0, 1, 0, 0, 1)
+
+#define tss_segment_high(base) \
+  system_segment_high(base)
+
+gdt_entry_t gdt[] = {
+  null_segment(),    // 0x00 null
+  code_segment64(0), // 0x08 kernel code
+  data_segment64(0), // 0x10 kernel data
+  data_segment64(3), // 0x18 user data
+  code_segment64(3), // 0x20 user code
+  null_segment(),    // 0x28 tss low
+  null_segment(),    // 0x30 tss high
 };
 
-void set_gdt_gate(uint8_t num, uint32_t base, uint16_t limit, uint8_t access, uint8_t gran)
-{
-    // Setup the descriptor base address
-    gdt[num].base_low = (base & 0xFFFF);
-    gdt[num].base_mid = (base >> 16) & 0xFF;
-    gdt[num].base_high = (base >> 24) & 0xFF;
+uint8_t ring0_stack[4096];
+struct tss tss;
 
-    // Setup the descriptor limits 
-    gdt[num].limit_low = (limit & 0xFFFF);
-    gdt[num].granularity = ((limit >> 16) & 0x0F);
+void setup_gdt() {
+	gdt_desc_t gdt_desc;
+	memset((void *) &tss, 0, sizeof(tss));
+	tss.rsp0 = (uint64_t) ring0_stack;
 
-    // Finally, set up the granularity and access flags
-    gdt[num].granularity |= (gran & 0xF0);
-    gdt[num].access = access;
-}
+	gdt[5] = tss_segment_low((uint64_t) &tss);
+	gdt[6] = tss_segment_high((uint64_t) &tss);
 
-static void write_tss(uint8_t num, uint16_t ss0, uint64_t esp0)
-{
-    uint32_t base = (uint32_t) &tss_entry;
-    uint16_t limit = base + sizeof(tss_entry);
+	gdt_desc.limit = sizeof(gdt) - 1;
+	gdt_desc.base = (uint64_t) &gdt;
 
-    set_gdt_gate(num, base, limit, 0xE9, 0x00);
-    memset((void *) &tss_entry, 0, sizeof(tss_entry));
-
-    tss_entry.ss0 = ss0;
-    tss_entry.esp0 = esp0;
-    tss_entry.cs = 0x0B;
-    tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
-}
-
-// void init_gdt()
-// {
-//     gdt_desc.limit = (sizeof(gdt_desc_t) * 6) - 1;
-//     gdt_desc.base = (uint64_t) &gdt;
-
-//     set_gdt_gate(0, 0, 0, 0, 0);
-//     set_gdt_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
-//     set_gdt_gate(1, 0, 0xFFFFFFFF, 0x92, 0xCF);
-//     set_gdt_gate(1, 0, 0xFFFFFFFF, 0xFA, 0xCF);
-//     set_gdt_gate(1, 0, 0xFFFFFFFF, 0xF2, 0xCF);
-//     write_tss(5, 0x10, 0x0);
-
-//     gdt_flush(&gdt_desc);
-//     cpu_load_tr();
-// }
-
-void help_me()
-{
-    //
+	cpu_load_gdt(&gdt_desc);
+	cpu_load_tr(0x28);
+	cpu_reload_segments();
 }

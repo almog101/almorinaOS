@@ -1,6 +1,6 @@
-#ifndef SYSCALLS_H
-#define SYSCALLS_H
+// #ifndef SYSCALLS_H
+// #define SYSCALLS_H
 
-extern int64_t* rsp_register;
+// extern int64_t* rsp_register;
 
-#endif
+// #endif

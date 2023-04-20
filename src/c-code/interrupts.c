@@ -48,11 +48,11 @@ void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
     pic_end_master();
 }
 
-void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame) 
-{
-    // uint64_t sys_number = *(rsp_register);
-	dispatch_syscall(4);
-}
+// void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame) 
+// {
+//     // uint64_t sys_number = *(rsp_register);
+// 	dispatch_syscall(4);
+// }
 
 void remap_pic()
 {

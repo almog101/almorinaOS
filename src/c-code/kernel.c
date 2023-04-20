@@ -18,8 +18,7 @@ fs_superblock_t* device;
 void prepare_interrupts();
 extern int sse_enable(void);
 
-extern void _syscall(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3);
-int _add(int num);
+extern int64_t _syscall(int64_t syscall_num, int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3);
 
 void kernel_main(unsigned long magic, unsigned long addr) 
 {
@@ -35,17 +34,13 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	cls();
 	print_greetings();
 
-	int q = _add(7);
-	printf("\n>> %d <<\n\n", q);
+	char* message = "a content";
+	char* ret_val = malloc(strlen("a content")) + 1;
 
-	// char* message;
-	// fs_inode_t file;
-
-	// strcpy(message, "a content\n");
-	// _syscall(4, 1, message, strlen(message));
-
-	// strcpy(message, "yes\n");
-	// _syscall(4, &file, message, strlen(message));
+	ret_val = _syscall(1, 0, message, strlen(message), 0);	// read
+	_syscall(2, 1, ret_val, strlen(ret_val), 0);			// write							// write
+	_syscall(2, ret_val, "message", strlen("message"), 0);	// write
+	printf("%s\n", ret_val);
 
 	shell_main();
 }

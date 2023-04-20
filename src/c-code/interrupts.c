@@ -5,8 +5,7 @@
 #include "../include/keyboard.h"
 #include "../include/vga.h"
 #include "pit.h"
-
-extern int64_t* rsp_register;
+#include <syscalls.h>
 
 /*
 for now, prints a warning message about the page fault
@@ -50,8 +49,16 @@ void __attribute__ ((interrupt)) PIT_tick_handler(struct interrupt_frame* frame)
 
 void __attribute__ ((interrupt)) syscall_handler(struct interrupt_frame* frame) 
 {
-    // uint64_t sys_number = *(rsp_register);
-	dispatch_syscall(4);
+    int64_t sys_num, arg0, arg1, arg2, arg3;
+    asm ("mov %%r9, %0" : "=r" (sys_num) );
+    asm ("mov %%rdi, %0" : "=r" (arg0) );
+    asm ("mov %%rsi, %0" : "=r" (arg1) );
+    asm ("mov %%rdx, %0" : "=r" (arg2) );
+    asm ("mov %%rcx, %0" : "=r" (arg3) );
+
+	int64_t ret_val = dispatch_syscall(sys_num, arg0, arg1, arg2, arg3);
+    // printf("[%s]\n", ret_val);
+    asm ("mov %0, %%rax" : "=r" (ret_val));
 }
 
 void remap_pic()

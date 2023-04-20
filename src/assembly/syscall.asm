@@ -1,20 +1,14 @@
 global	_syscall
 
-extern 	rsp_register
-
 [bits 64]
 _syscall:
-	push 	rcx		;argument 3
-	push 	rdx		;argument 2
-	push 	rsi		;argument 1
-	push 	rdi		;syscall number
+	mov 	r9, rdi		; syscall num
+	mov 	rdi, rsi	; arg0
+	mov 	rsi, rdx	; arg1
+	mov 	rdx, rcx 	; arg2
+	mov 	rcx, r8 	; arg3
 
-	;mov 	[rsp_register], rsp
 	int 	0x80
 
-	pop 	rdi
-	pop 	rsi
-	pop 	rdx
-	pop 	rcx
-
+	; mov 	rax, rdi
 	ret

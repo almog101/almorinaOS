@@ -1,73 +1,59 @@
 #include <syscall.h>
-#include <stdint.h>
 #include <stdio.h>
-#include "interrupts.h"
-#include <string.h>
-#include <fs.h>
 
-typedef void (*SYSCALL_FUNCTION) (void);
+#define STD_OUTPUT 1
+
+typedef int64_t (*SYSCALL_FUNCTION) (int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3);
 SYSCALL_FUNCTION syscalls[256];
 
-int64_t* rsp_register;
-
-void sys_fork(void) {}
-void sys_exit(void) {}
-void sys_open(void) {}
-
-void sys_read(void)
+int64_t sys_read(int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3)
 {
 	printf("syscall:\tread\n");
 
-	int output = *(rsp_register);
-	char* str = *(rsp_register + 1);
-	int str_len = *(rsp_register + 2);
-	printf("output:\t\t%d\nstring:\t\t%s\nstring length:\t%d\n\n", output, str, str_len);
+	return arg1;
 }
 
-void sys_write(void) 
+int64_t sys_write(int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3) 
 {
-	printf("\nsyscall:\twrite\n");
+	printf("syscall:\twrite\n");
 
-	// fs_inode_t* output = *(rsp_register + 1);
-	// char* str = *(rsp_register + 2);
-	// int str_len = *(rsp_register + 3);
-
-	if (1 == STDOUT)
+	if(arg0 == STD_OUTPUT)
 	{
-		// printf("data:\t\t%slength:\t\t%d\n", str, str_len);
+		printf(arg1);
 		putc('\n');
 	}
-	
-	else
+	else 
 	{
-		// char* content;
-		// strncpy(content, str, str_len);
-		// fs_inode_write_data(ramfs_device, output, content);
-		// printf("data:\t\t%slength:\t\t%d\n", output->blocks[0], str_len);
-		// while (1) {}
+		arg0 = arg1;
 	}
+
+	return 0;
 }
 
-void sys_close(void) {}
+int64_t sys_open(int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3) { return 0; }
+int64_t sys_close(int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3) { return 0; }
+
+// THIS WHOLE DOCUMENT IS CURSED
 
 void initialize_syscalls()
 {
 	syscalls[0] = 0;
-	syscalls[1] = sys_exit;
-	syscalls[2] = sys_fork;
-	syscalls[3] = sys_read;
-	syscalls[4] = sys_write;
-	syscalls[5] = sys_open;
-	syscalls[6] = sys_close;
+	syscalls[1] = sys_read;
+	syscalls[2] = sys_write;
+	syscalls[3] = sys_open;
+	syscalls[4] = sys_close;
 
-	for(int i = 6; i < 256; i++)
+	for(int i = 5; i < 256; i++)
 		syscalls[i] = 0;
 }
 
-void dispatch_syscall(int64_t num) 
+int64_t dispatch_syscall(int64_t num, int64_t arg0, int64_t arg1, int64_t arg2, int64_t arg3) 
 {
 	SYSCALL_FUNCTION func = syscalls[num];
 
 	if (func)
-		func();
+		return func(arg0, arg1, arg2, arg3);
+
+	else
+		return 0;
 }
